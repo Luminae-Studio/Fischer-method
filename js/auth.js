@@ -113,10 +113,6 @@ async function onLogin(user) {
   }
 
   currentProfile = profile;
-  if (!profile) {
-    setTimeout(function() { onLogin(user); }, 1000);
-    return;
-  }
   showApp(profile);
 }
 
@@ -134,8 +130,8 @@ function showApp(profile) {
   document.getElementById('app').style.display = 'flex';
 
   // Mostra nav correta
-  var role = profile ? profile.role : 'aluno';
-  if (role === 'personal') {
+  if (!profile) { showLogin(); return; }
+  if (profile.role === 'personal') {
     document.getElementById('bnav-personal').style.display = 'grid';
     document.getElementById('bnav-aluno').style.display = 'none';
     go('dash');
