@@ -1,6 +1,5 @@
 // ================================================
 // FISCHER METHOD — auth.js
-//V2
 // ================================================
 
 let currentUser = null;
@@ -114,6 +113,10 @@ async function onLogin(user) {
   }
 
   currentProfile = profile;
+  if (!profile) {
+    setTimeout(function() { onLogin(user); }, 1000);
+    return;
+  }
   showApp(profile);
 }
 
@@ -131,7 +134,8 @@ function showApp(profile) {
   document.getElementById('app').style.display = 'flex';
 
   // Mostra nav correta
-  if (profile.role === 'personal') {
+  var role = profile ? profile.role : 'aluno';
+  if (role === 'personal') {
     document.getElementById('bnav-personal').style.display = 'grid';
     document.getElementById('bnav-aluno').style.display = 'none';
     go('dash');
