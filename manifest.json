@@ -1,0 +1,25 @@
+{
+  "name": "Fischer Method",
+  "short_name": "Fischer",
+  "description": "App de treino personalizado - Fischer Method",
+  "start_url": "/Fischer-method/",
+  "scope": "/Fischer-method/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#080c08",
+  "theme_color": "#080c08",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
