@@ -81,7 +81,7 @@ img { display: block; max-width: 100%; }
   width: 100%; max-width: 430px;
   background: var(--surf-low);
   border-top: 1px solid var(--outline);
-  display: grid; grid-template-columns: repeat(5, 1fr);
+  display: grid; grid-template-columns: repeat(4, 1fr);
   padding-bottom: env(safe-area-inset-bottom);
   z-index: 300;
 }
