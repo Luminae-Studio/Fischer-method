@@ -8,10 +8,13 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Fischer Method">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <title>Fischer Method</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=20260504">
 </head>
 <body>
 
@@ -23,14 +26,11 @@
 
 <!-- LOGIN -->
 <div id="pg-login" class="login-wrap" style="display:none;">
-
   <div class="login-logo">
     <div class="login-emblem">F<span>M</span></div>
     <div class="login-method">Fischer Method</div>
   </div>
-
   <div class="login-card">
-
     <!-- SECAO GOOGLE -->
     <div id="section-google">
       <h2>Bem-vindo</h2>
@@ -45,11 +45,10 @@
         Entrar com Google
       </button>
     </div>
-
-    <!-- SECAO CONVITE (aparece para aluno novo) -->
+    <!-- SECAO CONVITE -->
     <div id="section-convite" style="display:none;">
       <h2>Codigo de Acesso</h2>
-      <p>Voce e novo por aqui! Digite o codigo de convite que o Matheus te enviou.</p>
+      <p>Voce e novo por aqui! Digite o codigo que o Matheus te enviou.</p>
       <div class="fg">
         <label>Codigo de convite</label>
         <input type="text" id="invite-input" placeholder="Ex: FM-ANA-X7K2" maxlength="20"
@@ -61,7 +60,6 @@
         <button class="btn btn-ghost btn-sm" onclick="logout()" style="font-size:12px;color:var(--muted);">Usar outra conta Google</button>
       </div>
     </div>
-
     <div id="login-error" style="display:none;margin-top:12px;padding:10px 14px;background:var(--red-pale);border:1px solid rgba(224,85,85,0.3);border-radius:var(--rs);font-size:12px;color:var(--red);"></div>
   </div>
 </div>
@@ -119,19 +117,19 @@
 <!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- APP -->
-<script src="js/config.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/db.js"></script>
-<script src="js/pages/inicio.js"></script>
-<script src="js/pages/treinos.js"></script>
-<script src="js/pages/progresso.js"></script>
-<script src="js/pages/perfil.js"></script>
-<script src="js/pages/dash.js"></script>
-<script src="js/pages/alunos.js"></script>
-<script src="js/pages/exercicios.js"></script>
-<script src="js/app.js"></script>
+<!-- APP -- versao 20260504 -->
+<script src="js/config.js?v=20260504"></script>
+<script src="js/auth.js?v=20260504"></script>
+<script src="js/ui.js?v=20260504"></script>
+<script src="js/db.js?v=20260504"></script>
+<script src="js/pages/inicio.js?v=20260504"></script>
+<script src="js/pages/treinos.js?v=20260504"></script>
+<script src="js/pages/progresso.js?v=20260504"></script>
+<script src="js/pages/perfil.js?v=20260504"></script>
+<script src="js/pages/dash.js?v=20260504"></script>
+<script src="js/pages/alunos.js?v=20260504"></script>
+<script src="js/pages/exercicios.js?v=20260504"></script>
+<script src="js/app.js?v=20260504"></script>
 
 </body>
 </html>
