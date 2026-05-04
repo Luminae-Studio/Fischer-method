@@ -1,12 +1,12 @@
-// ================================================
-// FISCHER METHOD — app.js
-// ================================================
+// FISCHER METHOD -- app.js
 document.addEventListener('DOMContentLoaded', function() {
-  // Registra service worker para PWA
+
+  // Remove service workers antigos que estao cacheando versoes velhas
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/Fischer-method/sw.js')
-      .then(function(reg) { console.log('SW registrado:', reg.scope); })
-      .catch(function(err) { console.log('SW erro:', err); });
+    navigator.serviceWorker.getRegistrations().then(function(regs) {
+      regs.forEach(function(reg) { reg.unregister(); });
+    });
   }
+
   initAuth();
 });
