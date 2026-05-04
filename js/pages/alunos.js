@@ -1,6 +1,4 @@
-// ================================================
-// FISCHER METHOD -- pages/alunos.js
-// ================================================
+// FISCHER METHOD -- alunos.js
 var alunosTab = 'alunos';
 
 function renderAlunos() {
@@ -13,7 +11,7 @@ function renderAlunos() {
       '<button class="btn btn-primary btn-sm" onclick="openGerarConvite()">+ Convite</button>' +
     '</div>' +
     '<div class="tabs" style="padding:0 20px;">' +
-      '<button class="tab' + (alunosTab==='alunos'?' on':'') + '" onclick="switchAlunosTab(\'alunos\',this)">Alunos ativos</button>' +
+      '<button class="tab' + (alunosTab==='alunos'?' on':'') + '" onclick="switchAlunosTab(\'alunos\',this)">Ativos</button>' +
       '<button class="tab' + (alunosTab==='convites'?' on':'') + '" onclick="switchAlunosTab(\'convites\',this)">Convites</button>' +
     '</div>' +
     '<div id="alunos-content" style="padding:0 20px;"></div>';
@@ -32,7 +30,6 @@ async function loadAlunosTab() {
   var el = document.getElementById('alunos-content');
   if (!el) return;
   el.innerHTML = '<div style="text-align:center;padding:40px 0;"><div class="spinner" style="margin:0 auto;"></div></div>';
-
   if (alunosTab === 'alunos') {
     await loadListaAlunos();
   } else {
@@ -88,12 +85,17 @@ async function loadListaConvites() {
   convites.forEach(function(c) {
     var usado = c.used;
     var data = c.created_at ? new Date(c.created_at).toLocaleDateString('pt-BR') : '';
+    var nomeAluno = c.aluno_nome || 'Aluno';
+
     html +=
       '<div class="card card-sm mb" style="display:flex;align-items:center;gap:12px;">' +
+        '<div style="width:40px;height:40px;border-radius:50%;background:' + (usado ? 'var(--green)' : 'var(--surf-high)') + ';border:1px solid ' + (usado ? 'var(--green)' : 'var(--outline)') + ';display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">' +
+          (usado ? '&#x2713;' : '&#x1F511;') +
+        '</div>' +
         '<div style="flex:1;min-width:0;">' +
-          '<div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:2px;">' + (c.aluno_nome || 'Aluno') + '</div>' +
-          '<div style="font-family:var(--font-display);font-size:14px;font-weight:800;color:var(--green-pale);letter-spacing:.1em;">' + c.code + '</div>' +
-          '<div style="font-size:10px;color:var(--muted);margin-top:3px);">Gerado em ' + data + '</div>' +
+          '<div style="font-size:14px;font-weight:700;color:var(--white);margin-bottom:2px;">' + nomeAluno + '</div>' +
+          '<div style="font-family:var(--font-display);font-size:13px;font-weight:800;color:var(--green-pale);letter-spacing:.08em;">' + c.code + '</div>' +
+          '<div style="font-size:10px;color:var(--muted);margin-top:2px;">Gerado em ' + data + '</div>' +
         '</div>' +
         '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">' +
           (usado
@@ -110,11 +112,10 @@ async function loadListaConvites() {
 
 function copiarCodigo(code) {
   navigator.clipboard.writeText(code).then(function() {
-    toast('Codigo copiado: ' + code);
+    toast('Copiado: ' + code);
   });
 }
 
 function abrirAlunoDetalhe(id) {
-  // Sera implementado em breve
-  toast('Detalhe do aluno em breve!');
+  toast('Perfil do aluno em breve!');
 }
