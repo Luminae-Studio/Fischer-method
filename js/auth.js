@@ -1,5 +1,6 @@
 // ================================================
 // FISCHER METHOD — auth.js
+//V2
 // ================================================
 
 let currentUser = null;
@@ -48,7 +49,7 @@ async function loginConvite() {
   if (!pass || pass.length < 6) { showLoginError('A senha precisa ter pelo menos 6 caracteres.'); return; }
 
   // Verifica se o codigo existe e nao foi usado
-  const { data: invite, error: invErr } = await supabase
+  const { data: invite, error: invErr } = await sb
     .from('invite_codes')
     .select('*')
     .eq('code', code)
@@ -89,7 +90,7 @@ async function onLogin(user) {
   currentUser = user;
 
   // Busca ou cria perfil
-  let { data: profile } = await supabase
+  let { data: profile } = await sb
     .from('profiles')
     .select('*')
     .eq('id', user.id)
@@ -98,7 +99,7 @@ async function onLogin(user) {
   if (!profile) {
     // Define role — se for o email do personal vira personal
     const role = user.email === PERSONAL_EMAIL ? 'personal' : 'aluno';
-    const { data: newProfile } = await supabase
+    const { data: newProfile } = await sb
       .from('profiles')
       .insert({
         id: user.id,
