@@ -64,6 +64,11 @@ async function criarConvite(code) {
   return res.error;
 }
 
+async function criarConviteNome(code, nome) {
+  var res = await sb.from('invite_codes').insert({ code: code, aluno_nome: nome });
+  return res.error;
+}
+
 async function getConvites() {
   var res = await sb.from('invite_codes').select('*').order('created_at', { ascending: false });
   return res.data || [];
