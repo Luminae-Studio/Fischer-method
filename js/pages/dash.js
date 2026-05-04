@@ -220,7 +220,7 @@ async function gerarConvite() {
   var random = Math.random().toString(36).substring(2, 6).toUpperCase();
   var code = 'FM-' + initials + '-' + random;
 
-  var err = await criarConvite(code);
+  var err = await criarConviteNome(code, nome);
   if (err) { toast('Erro ao gerar convite!'); return; }
 
   document.getElementById('conv-code').textContent = code;
