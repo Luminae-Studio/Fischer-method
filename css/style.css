@@ -76,7 +76,7 @@ img { display: block; max-width: 100%; }
 .top-bar-right { display: flex; align-items: center; gap: 10px; }
 
 /* ── BOTTOM NAV ──────────────────────────────────── */
-#bnav {
+.bnav-fixed {
   position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
   width: 100%; max-width: 430px;
   background: var(--surf-low);
@@ -93,7 +93,12 @@ img { display: block; max-width: 100%; }
 }
 .bn:active { opacity: .6; }
 .bn.on { color: var(--green-pale); }
-.bn .ico { font-size: 20px; line-height: 1; display: block; }
+.bn .ico {
+  font-size: 20px; line-height: 1; display: block;
+  filter: grayscale(1) brightness(0.7);
+  transition: filter .15s;
+}
+.bn.on .ico { filter: grayscale(1) brightness(1.6); }
 .bn .lbl { font-size: 9px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
 
 /* ── CARDS ───────────────────────────────────────── */
