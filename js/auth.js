@@ -1,17 +1,32 @@
-// ================================================
-// FISCHER METHOD — auth.js
-// ================================================
+// FISCHER METHOD -- auth.js
 var currentUser = null;
 var currentProfile = null;
 
 async function initAuth() {
+  // Supabase processa automaticamente o token do hash da URL apos redirect do Google
+  // Precisamos aguardar um momento para ele processar
   var res = await sb.auth.getSession();
   var session = res.data.session;
+
   if (session) {
     await onLogin(session.user);
   } else {
-    showLogin();
+    // Se tem hash na URL pode ser redirect do Google - aguarda processamento
+    if (window.location.hash && window.location.hash.includes('access_token')) {
+      document.getElementById('loading').style.display = 'flex';
+      setTimeout(async function() {
+        var res2 = await sb.auth.getSession();
+        if (res2.data.session) {
+          await onLogin(res2.data.session.user);
+        } else {
+          showLogin();
+        }
+      }, 1500);
+    } else {
+      showLogin();
+    }
   }
+
   sb.auth.onAuthStateChange(async function(event, session) {
     if (event === 'SIGNED_IN' && session) {
       await onLogin(session.user);
@@ -27,7 +42,9 @@ async function loginGoogle() {
   showLoginError('');
   var res = await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: 'https://luminae-studio.github.io/Fischer-method/' }
+    options: {
+      redirectTo: 'https://luminae-studio.github.io/Fischer-method/'
+    }
   });
   if (res.error) showLoginError('Erro ao conectar com Google. Tente novamente.');
 }
@@ -38,6 +55,12 @@ async function logout() {
 
 async function onLogin(user) {
   currentUser = user;
+
+  // Limpa o hash da URL sem recarregar a pagina
+  if (window.location.hash) {
+    history.replaceState(null, '', window.location.pathname);
+  }
+
   var res = await sb.from('profiles').select('*').eq('id', user.id).single();
   var profile = res.data;
 
@@ -58,6 +81,7 @@ async function onLogin(user) {
     }
     return;
   }
+
   currentProfile = profile;
   showApp(profile);
 }
