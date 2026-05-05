@@ -293,22 +293,37 @@ function openNovaAvaliacao() {
 async function salvarAvaliacao() {
   var peso = parseFloat(document.getElementById('av-peso').value)||null;
   var altura = parseFloat(document.getElementById('av-alt').value)||null;
-  var imc = peso&&altura ? Math.round(peso/Math.pow(altura/100,2)*10)/10 : null;
+  var cin = parseFloat(document.getElementById('av-cin').value)||null;
+  var quad = parseFloat(document.getElementById('av-quad').value)||null;
+
+  // Usa valores calculados automaticamente
+  var imc = window._avIMC || (peso&&altura ? Math.round(peso/Math.pow(altura/100,2)*10)/10 : null);
+  var gordura_pct = window._avGord || null;
+  var cin_quad = window._avCQ || (cin&&quad ? Math.round(cin/quad*100)/100 : null);
+
   var data = {
     aluno_id: alunoAtual.id,
     data: document.getElementById('av-data').value,
-    peso: peso, altura: altura, imc: imc,
-    gordura_pct: parseFloat(document.getElementById('av-gord').value)||null,
-    cin_quad: parseFloat(document.getElementById('av-cq').value)||null,
+    peso: peso,
+    altura: altura,
+    imc: imc,
+    gordura_pct: gordura_pct,
+    cin_quad: cin_quad,
     pressao: document.getElementById('av-press').value||null,
     objetivo: document.getElementById('av-obj').value||null,
     obs: document.getElementById('av-obs').value||null
   };
+
   var res = await sb.from('avaliacoes').insert(data);
-  if (res.error) { toast('Erro ao salvar!'); return; }
+  if (res.error) { toast('Erro ao salvar! Verifique a conexao.'); console.error(res.error); return; }
   if (peso) await sb.from('medidas').insert({ aluno_id: alunoAtual.id, data: data.data, peso: peso });
+
+  // Limpa variaveis temporarias
+  window._avIMC = null; window._avGord = null; window._avCQ = null;
+
   closeModal('mod-av');
   toast('Avaliacao salva!');
+  alunoDetTab = 'progresso';
   loadDetTab();
 }
 
