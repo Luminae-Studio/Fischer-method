@@ -123,7 +123,7 @@ async function loadDashData() {
     html += '</div>';
 
     // ACOES RAPIDAS
-    html += '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">Acoes rapidas</div>';
+    html += '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">Atalhos</div>';
     html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">';
     html += mkAction('&#x1F465;', 'Ver alunos', "go('alunos')");
     html += mkAction('&#x1F3CB;&#xFE0F;', 'Exercicios', "go('exercicios')");
