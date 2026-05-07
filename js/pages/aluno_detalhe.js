@@ -612,6 +612,14 @@ function mkDetStat(val,lbl,green){
     '<div style="font-size:10px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.05em;">'+lbl+'</div></div>';
 }
 
+function mkMedidaColor(val,lbl,desc,color){
+  return'<div style="background:var(--surf-high);border-radius:var(--rs);padding:10px;text-align:center;">' +
+    '<div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:'+color+';">'+val+'</div>' +
+    '<div style="font-size:10px;color:var(--muted);margin-top:2px;">'+lbl+'</div>' +
+    (desc ? '<div style="font-size:9px;color:'+color+';font-weight:600;margin-top:1px;">'+desc+'</div>' : '') +
+    '</div>';
+}
+
 function mkMedida(val,lbl){
   return'<div style="background:var(--surf-high);border-radius:var(--rs);padding:10px;text-align:center;">' +
     '<div style="font-family:var(--font-display);font-size:18px;font-weight:700;">'+val+'</div>' +
