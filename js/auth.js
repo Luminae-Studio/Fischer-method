@@ -43,7 +43,7 @@ async function loginGoogle() {
   var res = await sb.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: 'https://luminae-studio.github.io/Fischer-method/'
+      redirectTo: 'https://fischer-method.netlify.app/'
     }
   });
   if (res.error) showLoginError('Erro ao conectar com Google. Tente novamente.');
