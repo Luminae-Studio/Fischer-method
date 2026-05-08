@@ -35,7 +35,6 @@ async function abrirAlunoDetalhe(id) {
 function renderAlunoDetalhe() {
   var el = document.getElementById('pg-aluno-det');
   if (!el || !alunoAtual) return;
-  var a = alunoAtual;
 
   el.innerHTML =
     '<div class="top-bar">' +
@@ -61,7 +60,6 @@ async function loadDetHeader() {
   if (!el || !alunoAtual) return;
   var a = alunoAtual;
 
-  // Busca ultima execucao para status dinamico
   var resEx = await sb.from('execucoes').select('data').eq('aluno_id', a.id).eq('concluido', true).order('data', {ascending: false}).limit(1);
   var ultimaData = resEx.data && resEx.data[0] ? resEx.data[0].data : null;
   var status = calcStatusDinamico(ultimaData);
@@ -105,8 +103,14 @@ async function loadDetVisao() {
   var el = document.getElementById('alu-det-content');
   var a = alunoAtual;
 
-  var resAv = await sb.from('avaliacoes').select('peso,altura,imc,gordura_pct,data').eq('aluno_id', a.id).order('data',{ascending:false}).limit(1);
+  // Busca ultima avaliacao
+  var resAv = await sb.from('avaliacoes')
+    .select('peso,altura,imc,gordura_pct,pressao,data')
+    .eq('aluno_id', a.id)
+    .order('data', {ascending: false})
+    .limit(1);
   var av = resAv.data && resAv.data[0];
+
   var resEx = await sb.from('execucoes').select('data').eq('aluno_id', a.id).eq('concluido', true).order('data',{ascending:false});
   var streak = calcStreak(resEx.data||[]);
   var ultimo = resEx.data && resEx.data[0];
@@ -122,23 +126,57 @@ async function loadDetVisao() {
   html += '</div>';
 
   // DADOS CORPORAIS
+  html += '<div class="card mb">';
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">';
+  html += '<div style="font-family:var(--font-display);font-size:14px;font-weight:700;">Dados corporais</div>';
   if (av) {
-    html += '<div class="card mb">';
-    html += '<div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:12px;">Dados corporais</div>';
+    html += '<button class="btn btn-ghost btn-xs" onclick="switchDetTab(\'medidas\',null)">Ver historico</button>';
+  }
+  html += '</div>';
+
+  if (av) {
     html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">';
-    if (av.peso) html += mkMedida(av.peso+' kg','Peso');
-    if (av.altura) html += mkMedida(av.altura+' cm','Altura');
-    if (av.imc) html += mkMedida(String(av.imc),'IMC');
-    if (av.gordura_pct) html += mkMedida(av.gordura_pct+'%','% Gordura');
+
+    // Peso
+    if (av.peso) html += mkMedida(av.peso + ' kg', 'Peso');
+
+    // Altura
+    if (av.altura) html += mkMedida(av.altura + ' cm', 'Altura');
+
+    // IMC com classificacao
+    if (av.imc) {
+      var imcClass = av.imc < 18.5 ? 'Abaixo do peso' : av.imc < 25 ? 'Normal' : av.imc < 30 ? 'Sobrepeso' : av.imc < 35 ? 'Obesidade I' : 'Obesidade II+';
+      var imcColor = av.imc < 25 ? 'var(--green-pale)' : av.imc < 30 ? 'var(--gold)' : 'var(--red)';
+      html += mkMedidaColor(String(av.imc), 'IMC · ' + imcClass, imcColor);
+    }
+
+    // Pressao arterial
+    if (av.pressao) {
+      var parts = av.pressao.split('/');
+      var pColor = 'var(--muted)';
+      var pClass = '';
+      if (parts.length === 2) {
+        var sis = parseInt(parts[0]), dia = parseInt(parts[1]);
+        pClass = (sis < 120 && dia < 80) ? 'Normal' : (sis < 130 && dia < 80) ? 'Elevada' : (sis < 140 || dia < 90) ? 'Hiper I' : 'Hiper II';
+        pColor = pClass === 'Normal' ? 'var(--green-pale)' : pClass === 'Elevada' ? 'var(--gold)' : 'var(--red)';
+      }
+      html += mkMedidaColor(av.pressao, 'Pressao' + (pClass ? ' · ' + pClass : ''), pColor);
+    }
+
+    // Gordura
+    if (av.gordura_pct) {
+      html += mkMedida(av.gordura_pct + '%', '% Gordura');
+    }
+
     html += '</div>';
     html += '<div style="font-size:10px;color:var(--muted);margin-top:10px;">Avaliacao de ' + new Date(av.data+'T12:00:00').toLocaleDateString('pt-BR') + '</div>';
-    html += '</div>';
   } else {
-    html += '<div class="card mb" style="text-align:center;padding:20px;">';
+    html += '<div style="text-align:center;padding:16px 0;">';
     html += '<div style="font-size:13px;color:var(--muted);margin-bottom:12px;">Nenhuma avaliacao ainda</div>';
     html += '<button class="btn btn-primary btn-sm" onclick="openNovaAvaliacao()">Fazer primeira avaliacao</button>';
     html += '</div>';
   }
+  html += '</div>';
 
   // TREINOS ATIVOS
   html += '<div class="card mb">';
@@ -159,6 +197,7 @@ async function loadDetVisao() {
     });
   }
   html += '</div>';
+
   el.innerHTML = html;
 }
 
@@ -181,63 +220,147 @@ async function loadDetTreinos() {
   el.innerHTML = html + '</div>';
 }
 
-// -- MEDIDAS ---------------------------------------
+// -- MEDIDAS (Historico de avaliacoes) --------------
 async function loadDetMedidas() {
   var el = document.getElementById('alu-det-content');
-  var res = await sb.from('avaliacoes').select('*').eq('aluno_id', alunoAtual.id).order('data',{ascending:false}).limit(1);
-  var av = res.data && res.data[0];
+  var res = await sb.from('avaliacoes')
+    .select('*')
+    .eq('aluno_id', alunoAtual.id)
+    .order('data', {ascending: false});
+  var avaliacoes = res.data || [];
+
   var html = '';
 
+  // Botao nova avaliacao (so personal)
   html += '<button class="btn btn-primary btn-full mb" onclick="openNovaAvaliacao()">+ Nova avaliacao</button>';
 
-  if (av) {
-    // CIRCUNFERENCIAS
-    html += '<div class="card mb">';
-    html += '<div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:12px;">Circunferencias (cm)</div>';
-    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">';
-    var circ = [
-      {key:'cin_quad', label:'Cintura', suffix:'cm'},
-      {key:'peito', label:'Peito', suffix:'cm'},
-      {key:'bunda', label:'Bunda', suffix:'cm'},
-      {key:'coxa_d', label:'Coxa direita', suffix:'cm'},
-      {key:'coxa_e', label:'Coxa esquerda', suffix:'cm'},
-      {key:'braco_d', label:'Braco direito', suffix:'cm'},
-      {key:'braco_e', label:'Braco esquerdo', suffix:'cm'},
-      {key:'panturrilha', label:'Panturrilha', suffix:'cm'},
-      {key:'abdomen', label:'Abdomen', suffix:'cm'}
-    ];
-    circ.forEach(function(c) {
-      if (av[c.key]) html += mkMedida(av[c.key]+' '+c.suffix, c.label);
-    });
-    html += '</div>';
-    html += '<div style="font-size:10px;color:var(--muted);margin-top:10px;">Avaliacao de ' + new Date(av.data+'T12:00:00').toLocaleDateString('pt-BR') + '</div>';
-    html += '</div>';
-
-    // DOBRAS CUTANEAS
-    var temDobras = av.dobra_tricipital || av.dobra_subescapular || av.dobra_suprailiaca || av.dobra_abdominal || av.dobra_coxa || av.dobra_panturrilha;
-    if (temDobras) {
-      html += '<div class="card mb">';
-      html += '<div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:12px;">Dobras cutaneas (mm)</div>';
-      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">';
-      var dobras = [
-        {key:'dobra_tricipital', label:'Tricipital'},
-        {key:'dobra_subescapular', label:'Subescapular'},
-        {key:'dobra_suprailiaca', label:'Suprailiaca'},
-        {key:'dobra_abdominal', label:'Abdominal'},
-        {key:'dobra_coxa', label:'Coxa'},
-        {key:'dobra_panturrilha', label:'Panturrilha'}
-      ];
-      dobras.forEach(function(d) {
-        if (av[d.key]) html += mkMedida(av[d.key]+' mm', d.label);
-      });
-      html += '</div></div>';
-    }
-  } else {
+  if (!avaliacoes.length) {
     html += '<div class="card" style="text-align:center;padding:30px;">';
     html += '<div style="font-size:13px;color:var(--muted);">Nenhuma avaliacao registrada ainda.</div>';
     html += '</div>';
+    el.innerHTML = html;
+    return;
   }
+
+  // HISTORICO — lista com data clicavel
+  html += '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">Historico (' + avaliacoes.length + ')</div>';
+
+  avaliacoes.forEach(function(av, idx) {
+    var dtLabel = new Date(av.data + 'T12:00:00').toLocaleDateString('pt-BR', {day: '2-digit', month: 'long', year: 'numeric'});
+    var badges = [];
+    if (av.peso) badges.push(av.peso + ' kg');
+    if (av.imc) badges.push('IMC ' + av.imc);
+    if (av.gordura_pct) badges.push(av.gordura_pct + '% gord.');
+    if (av.pressao) badges.push(av.pressao);
+
+    html += '<div class="card mb" style="cursor:pointer;" onclick="toggleAvDetalhes(\'av-det-' + idx + '\')">';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;">';
+    html += '<div>';
+    html += '<div style="font-size:13px;font-weight:700;margin-bottom:4px;">' + dtLabel + '</div>';
+    if (badges.length) {
+      html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+      badges.forEach(function(b) {
+        html += '<span style="font-size:10px;color:var(--green-pale);background:var(--green-glow);border:1px solid var(--green-border);padding:2px 8px;border-radius:99px;">' + b + '</span>';
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+    html += '<span style="font-size:18px;color:var(--muted);transition:transform .2s;" id="av-arrow-' + idx + '">&#x203A;</span>';
+    html += '</div>';
+
+    // Detalhes (inicialmente oculto)
+    html += '<div id="av-det-' + idx + '" style="display:none;margin-top:14px;border-top:1px solid var(--outline);padding-top:14px;">';
+
+    // Dados basicos
+    var temBasico = av.peso || av.altura || av.imc || av.gordura_pct || av.pressao || av.cin_quad;
+    if (temBasico) {
+      html += '<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Dados basicos</div>';
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">';
+      if (av.peso) html += mkMedida(av.peso + ' kg', 'Peso');
+      if (av.altura) html += mkMedida(av.altura + ' cm', 'Altura');
+      if (av.imc) {
+        var imcClass = av.imc < 18.5 ? 'Abaixo do peso' : av.imc < 25 ? 'Normal' : av.imc < 30 ? 'Sobrepeso' : av.imc < 35 ? 'Obesidade I' : 'Obesidade II+';
+        var imcColor = av.imc < 25 ? 'var(--green-pale)' : av.imc < 30 ? 'var(--gold)' : 'var(--red)';
+        html += mkMedidaColor(String(av.imc), 'IMC · ' + imcClass, imcColor);
+      }
+      if (av.pressao) {
+        var pparts = av.pressao.split('/');
+        var pColor2 = 'var(--muted)', pClass2 = '';
+        if (pparts.length === 2) {
+          var sis2 = parseInt(pparts[0]), dia2 = parseInt(pparts[1]);
+          pClass2 = (sis2 < 120 && dia2 < 80) ? 'Normal' : (sis2 < 130 && dia2 < 80) ? 'Elevada' : (sis2 < 140 || dia2 < 90) ? 'Hiper I' : 'Hiper II';
+          pColor2 = pClass2 === 'Normal' ? 'var(--green-pale)' : pClass2 === 'Elevada' ? 'var(--gold)' : 'var(--red)';
+        }
+        html += mkMedidaColor(av.pressao, 'Pressao' + (pClass2 ? ' · ' + pClass2 : ''), pColor2);
+      }
+      if (av.gordura_pct) html += mkMedida(av.gordura_pct + '%', '% Gordura');
+      if (av.cin_quad) html += mkMedida(String(av.cin_quad), 'Cin/Quad');
+      html += '</div>';
+    }
+
+    // Circunferencias
+    var circDados = [
+      {key:'peito', label:'Peito'}, {key:'bunda', label:'Bunda'},
+      {key:'coxa_d', label:'Coxa Dir.'}, {key:'coxa_e', label:'Coxa Esq.'},
+      {key:'braco_d', label:'Braco Dir.'}, {key:'braco_e', label:'Braco Esq.'},
+      {key:'panturrilha', label:'Panturrilha'}, {key:'abdomen', label:'Abdomen'}
+    ];
+    var temCirc = circDados.some(function(c) { return av[c.key]; });
+    if (temCirc) {
+      html += '<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Circunferencias (cm)</div>';
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">';
+      circDados.forEach(function(c) {
+        if (av[c.key]) html += mkMedida(av[c.key] + ' cm', c.label);
+      });
+      html += '</div>';
+    }
+
+    // Dobras cutaneas
+    var dobrasDados = [
+      {key:'dobra_tricipital', label:'Tricipital'}, {key:'dobra_subescapular', label:'Subescap.'},
+      {key:'dobra_suprailiaca', label:'Suprailiaca'}, {key:'dobra_abdominal', label:'Abdominal'},
+      {key:'dobra_coxa', label:'Coxa'}, {key:'dobra_panturrilha', label:'Panturrilha'}
+    ];
+    var temDobras = dobrasDados.some(function(d) { return av[d.key]; });
+    if (temDobras) {
+      html += '<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Dobras cutaneas (mm)</div>';
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">';
+      dobrasDados.forEach(function(d) {
+        if (av[d.key]) html += mkMedida(av[d.key] + ' mm', d.label);
+      });
+      html += '</div>';
+    }
+
+    // Objetivo e observacoes
+    if (av.objetivo) {
+      html += '<div style="margin-bottom:8px;">';
+      html += '<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Objetivo</div>';
+      html += '<div style="font-size:13px;color:var(--white);">' + av.objetivo + '</div>';
+      html += '</div>';
+    }
+    if (av.obs) {
+      html += '<div style="margin-bottom:8px;">';
+      html += '<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Observacoes</div>';
+      html += '<div style="font-size:13px;color:var(--white);line-height:1.6;">' + av.obs + '</div>';
+      html += '</div>';
+    }
+
+    html += '</div>'; // fecha av-det
+    html += '</div>'; // fecha card
+  });
+
   el.innerHTML = html;
+}
+
+// Abre/fecha detalhes de uma avaliacao no historico
+function toggleAvDetalhes(id) {
+  var det = document.getElementById(id);
+  if (!det) return;
+  var idx = id.replace('av-det-', '');
+  var arrow = document.getElementById('av-arrow-' + idx);
+  var isOpen = det.style.display !== 'none';
+  det.style.display = isOpen ? 'none' : 'block';
+  if (arrow) arrow.style.transform = isOpen ? '' : 'rotate(90deg)';
 }
 
 // -- PROGRESSO -------------------------------------
@@ -378,7 +501,7 @@ async function deletarNota(id) {
   await loadDetNotas();
 }
 
-// -- AVALIACAO -------------------------------------
+// -- AVALIACAO — formulario de nova avaliacao ------
 function openNovaAvaliacao() {
   var existing = document.getElementById('mod-av'); if (existing) existing.remove();
   var m = document.createElement('div'); m.className='mov'; m.id='mod-av';
@@ -531,6 +654,7 @@ async function salvarAvaliacao() {
   };
   var res=await sb.from('avaliacoes').insert(data);
   if (res.error){toast('Erro ao salvar!');console.error(res.error);return;}
+  // Registra o peso tambem na tabela medidas para o grafico de evolucao
   if (peso) await sb.from('medidas').insert({aluno_id:alunoAtual.id,data:data.data,peso:peso});
   window._avIMC=null;window._avGord=null;window._avCQ=null;
   closeModal('mod-av');
@@ -612,17 +736,16 @@ function mkDetStat(val,lbl,green){
     '<div style="font-size:10px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.05em;">'+lbl+'</div></div>';
 }
 
-function mkMedidaColor(val,lbl,desc,color){
-  return'<div style="background:var(--surf-high);border-radius:var(--rs);padding:10px;text-align:center;">' +
-    '<div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:'+color+';">'+val+'</div>' +
-    '<div style="font-size:10px;color:var(--muted);margin-top:2px;">'+lbl+'</div>' +
-    (desc ? '<div style="font-size:9px;color:'+color+';font-weight:600;margin-top:1px;">'+desc+'</div>' : '') +
-    '</div>';
-}
-
 function mkMedida(val,lbl){
   return'<div style="background:var(--surf-high);border-radius:var(--rs);padding:10px;text-align:center;">' +
     '<div style="font-family:var(--font-display);font-size:18px;font-weight:700;">'+val+'</div>' +
+    '<div style="font-size:10px;color:var(--muted);margin-top:2px;">'+lbl+'</div></div>';
+}
+
+// Variante com cor personalizada (para IMC, pressao, etc.)
+function mkMedidaColor(val,lbl,color){
+  return'<div style="background:var(--surf-high);border-radius:var(--rs);padding:10px;text-align:center;">' +
+    '<div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:'+color+';">'+val+'</div>' +
     '<div style="font-size:10px;color:var(--muted);margin-top:2px;">'+lbl+'</div></div>';
 }
 
