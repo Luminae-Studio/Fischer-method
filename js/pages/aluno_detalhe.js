@@ -366,37 +366,143 @@ function toggleAvDetalhes(id) {
 // -- PROGRESSO -------------------------------------
 async function loadDetProgresso() {
   var el = document.getElementById('alu-det-content');
-  var resMed = await sb.from('medidas').select('*').eq('aluno_id', alunoAtual.id).order('data',{ascending:true});
-  var medidas = resMed.data || [];
-  var html = '';
 
-  if (medidas.length > 1) {
-    var pesos = medidas.map(function(m){return m.peso;}).filter(Boolean);
-    var maxP = Math.max.apply(null,pesos), minP = Math.min.apply(null,pesos);
-    var range = maxP-minP||1;
-    html += '<div class="card mb">';
-    html += '<div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:12px;">Evolução do peso</div>';
-    html += '<div style="display:flex;align-items:flex-end;gap:4px;height:80px;margin-bottom:8px;">';
-    medidas.slice(-10).forEach(function(m) {
-      var h = m.peso ? Math.round(((m.peso-minP)/range)*60+10) : 10;
-      var dt = new Date(m.data+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
-      html += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;">';
-      html += '<div style="font-size:9px;color:var(--green-pale);font-weight:700;">' + (m.peso||'') + '</div>';
-      html += '<div style="width:100%;height:' + h + 'px;background:var(--green);border-radius:3px 3px 0 0;"></div>';
-      html += '<div style="font-size:8px;color:var(--muted);">' + dt + '</div></div>';
-    });
-    html += '</div>';
-    var diff = Math.round((medidas[medidas.length-1].peso-medidas[0].peso)*10)/10;
-    html += '<div style="font-size:12px;color:' + (diff<0?'var(--green-pale)':diff>0?'var(--red)':'var(--muted)') + ';font-weight:600;text-align:center;">' + (diff>0?'+':'') + diff + ' kg desde o inicio</div>';
-    html += '</div>';
-  }
+  // Busca avaliacoes em ordem cronologica (fonte unica de verdade)
+  var resAv = await sb.from('avaliacoes')
+    .select('data, peso, imc, gordura_pct, pressao')
+    .eq('aluno_id', alunoAtual.id)
+    .order('data', {ascending: true});
+  var avs = resAv.data || [];
 
-  html += '<button class="btn btn-primary btn-full mb" onclick="openNovaMedida()">+ Registrar peso</button>';
-
-  if (!medidas.length) {
-    el.innerHTML = '<div class="empty"><div class="empty-ico">&#x1F4C8;</div><p>Nenhum dado de progresso ainda.</p><button class="btn btn-primary" style="margin-top:12px;" onclick="openNovaMedida()">Registrar peso</button></div>';
+  if (!avs.length) {
+    el.innerHTML =
+      '<div class="empty">' +
+        '<div class="empty-ico">&#x1F4C8;</div>' +
+        '<p>Nenhum dado de progresso ainda.<br>' +
+        '<span style="font-size:12px;color:var(--muted);">Os dados aparecem automaticamente<br>ao registrar uma avalia\u00e7\u00e3o.</span></p>' +
+      '</div>';
     return;
   }
+
+  var html = '';
+
+  // ── GRAFICO DE PESO ──────────────────────────────
+  var comPeso = avs.filter(function(a) { return a.peso; });
+  if (comPeso.length) {
+    var pesos = comPeso.map(function(a) { return a.peso; });
+    var maxP = Math.max.apply(null, pesos);
+    var minP = Math.min.apply(null, pesos);
+    var range = maxP - minP || 1;
+    var ultimos = comPeso.slice(-10);
+
+    html += '<div class="card mb">';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">';
+    html += '<div style="font-family:var(--font-display);font-size:14px;font-weight:700;">Evolu\u00e7\u00e3o do peso</div>';
+    html += '<div style="font-size:11px;color:var(--muted);">' + comPeso.length + ' avalia\u00e7\u00e3o' + (comPeso.length > 1 ? '\u00f5es' : '') + '</div>';
+    html += '</div>';
+
+    html += '<div style="display:flex;align-items:flex-end;gap:4px;height:90px;margin-bottom:10px;">';
+    ultimos.forEach(function(a) {
+      var barH = comPeso.length === 1 ? 60 : Math.round(((a.peso - minP) / range) * 60 + 10);
+      var dt = new Date(a.data + 'T12:00:00').toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
+      html += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;">';
+      html += '<div style="font-size:9px;color:var(--green-pale);font-weight:700;">' + a.peso + '</div>';
+      html += '<div style="width:100%;height:' + barH + 'px;background:var(--green);border-radius:3px 3px 0 0;opacity:0.85;"></div>';
+      html += '<div style="font-size:8px;color:var(--muted);text-align:center;">' + dt + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    if (comPeso.length > 1) {
+      var diff = Math.round((pesos[pesos.length - 1] - pesos[0]) * 10) / 10;
+      var diffColor = diff < 0 ? 'var(--green-pale)' : diff > 0 ? 'var(--red)' : 'var(--muted)';
+      var diffLabel = diff === 0 ? 'Peso est\u00e1vel desde o in\u00edcio' : (diff > 0 ? '+' : '') + diff + ' kg desde o in\u00edcio';
+      html += '<div style="font-size:12px;color:' + diffColor + ';font-weight:600;text-align:center;padding-top:8px;border-top:1px solid var(--outline);">' + diffLabel + '</div>';
+    }
+    html += '</div>';
+  }
+
+  // ── EVOLUCAO DE IMC ──────────────────────────────
+  var comIMC = avs.filter(function(a) { return a.imc; });
+  if (comIMC.length) {
+    var imcs = comIMC.map(function(a) { return a.imc; });
+    var maxI = Math.max.apply(null, imcs);
+    var minI = Math.min.apply(null, imcs);
+    var rangeI = maxI - minI || 1;
+    var ultimosI = comIMC.slice(-10);
+
+    html += '<div class="card mb">';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">';
+    html += '<div style="font-family:var(--font-display);font-size:14px;font-weight:700;">Evolu\u00e7\u00e3o do IMC</div>';
+    var ultimoIMC = imcs[imcs.length - 1];
+    var imcClass = ultimoIMC < 18.5 ? 'Abaixo do peso' : ultimoIMC < 25 ? 'Normal' : ultimoIMC < 30 ? 'Sobrepeso' : ultimoIMC < 35 ? 'Obesidade I' : 'Obesidade II+';
+    var imcColor = ultimoIMC < 25 ? 'var(--green-pale)' : ultimoIMC < 30 ? 'var(--gold)' : 'var(--red)';
+    html += '<span style="font-size:11px;font-weight:700;color:' + imcColor + ';">' + ultimoIMC + ' · ' + imcClass + '</span>';
+    html += '</div>';
+
+    html += '<div style="display:flex;align-items:flex-end;gap:4px;height:70px;margin-bottom:10px;">';
+    ultimosI.forEach(function(a) {
+      var barH = comIMC.length === 1 ? 50 : Math.round(((a.imc - minI) / rangeI) * 45 + 10);
+      var iColor = a.imc < 25 ? 'var(--green)' : a.imc < 30 ? 'var(--gold)' : 'var(--red)';
+      var dt = new Date(a.data + 'T12:00:00').toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
+      html += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;">';
+      html += '<div style="font-size:9px;font-weight:700;color:' + iColor + ';">' + a.imc + '</div>';
+      html += '<div style="width:100%;height:' + barH + 'px;background:' + iColor + ';border-radius:3px 3px 0 0;opacity:0.85;"></div>';
+      html += '<div style="font-size:8px;color:var(--muted);">' + dt + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    if (comIMC.length > 1) {
+      var diffI = Math.round((imcs[imcs.length - 1] - imcs[0]) * 10) / 10;
+      var diffIColor = diffI < 0 ? 'var(--green-pale)' : diffI > 0 ? 'var(--red)' : 'var(--muted)';
+      html += '<div style="font-size:12px;color:' + diffIColor + ';font-weight:600;text-align:center;padding-top:8px;border-top:1px solid var(--outline);">' + (diffI > 0 ? '+' : '') + diffI + ' desde o in\u00edcio</div>';
+    }
+    html += '</div>';
+  }
+
+  // ── EVOLUCAO DE % GORDURA ────────────────────────
+  var comGord = avs.filter(function(a) { return a.gordura_pct; });
+  if (comGord.length) {
+    var gords = comGord.map(function(a) { return a.gordura_pct; });
+    var maxG = Math.max.apply(null, gords);
+    var minG = Math.min.apply(null, gords);
+    var rangeG = maxG - minG || 1;
+    var ultimosG = comGord.slice(-10);
+
+    html += '<div class="card mb">';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">';
+    html += '<div style="font-family:var(--font-display);font-size:14px;font-weight:700;">Evolu\u00e7\u00e3o da gordura</div>';
+    html += '<span style="font-size:11px;color:var(--muted);">' + gords[gords.length - 1] + '%</span>';
+    html += '</div>';
+
+    html += '<div style="display:flex;align-items:flex-end;gap:4px;height:70px;margin-bottom:10px;">';
+    ultimosG.forEach(function(a) {
+      var barH = comGord.length === 1 ? 50 : Math.round(((a.gordura_pct - minG) / rangeG) * 45 + 10);
+      var dt = new Date(a.data + 'T12:00:00').toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
+      html += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;">';
+      html += '<div style="font-size:9px;color:var(--gold);font-weight:700;">' + a.gordura_pct + '%</div>';
+      html += '<div style="width:100%;height:' + barH + 'px;background:var(--gold);border-radius:3px 3px 0 0;opacity:0.75;"></div>';
+      html += '<div style="font-size:8px;color:var(--muted);">' + dt + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    if (comGord.length > 1) {
+      var diffG = Math.round((gords[gords.length - 1] - gords[0]) * 10) / 10;
+      var diffGColor = diffG < 0 ? 'var(--green-pale)' : diffG > 0 ? 'var(--red)' : 'var(--muted)';
+      html += '<div style="font-size:12px;color:' + diffGColor + ';font-weight:600;text-align:center;padding-top:8px;border-top:1px solid var(--outline);">' + (diffG > 0 ? '+' : '') + diffG + '% desde o in\u00edcio</div>';
+    }
+    html += '</div>';
+  }
+
+  // Se tem so 1 avaliacao, mostra aviso
+  if (avs.length === 1) {
+    html += '<div style="text-align:center;padding:8px 0 4px;">';
+    html += '<span style="font-size:11px;color:var(--muted);">A evolu\u00e7\u00e3o aparecer\u00e1 com mais avalia\u00e7\u00f5es registradas.</span>';
+    html += '</div>';
+  }
+
   el.innerHTML = html;
 }
 
