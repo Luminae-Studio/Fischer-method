@@ -375,7 +375,7 @@ async function loadDetProgresso() {
     var maxP = Math.max.apply(null,pesos), minP = Math.min.apply(null,pesos);
     var range = maxP-minP||1;
     html += '<div class="card mb">';
-    html += '<div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:12px;">Evolucao do peso</div>';
+    html += '<div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:12px;">Evolução do peso</div>';
     html += '<div style="display:flex;align-items:flex-end;gap:4px;height:80px;margin-bottom:8px;">';
     medidas.slice(-10).forEach(function(m) {
       var h = m.peso ? Math.round(((m.peso-minP)/range)*60+10) : 10;
