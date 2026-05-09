@@ -35,9 +35,77 @@ async function getTodosAlunos() {
 }
 
 // ── EXERCICIOS ────────────────────────────────────
-async function getExercicios() {
-  var res = await sb.from('exercicios').select('*').order('nome');
+async function getExercicios(filtros) {
+  var q = sb.from('exercicios').select('*').order('nome');
+  if (filtros) {
+    if (filtros.musculo) q = q.eq('musculo', filtros.musculo);
+    if (filtros.tipo) q = q.eq('tipo', filtros.tipo);
+    if (filtros.local) q = q.eq('local', filtros.local);
+    if (filtros.equipamento) q = q.eq('equipamento', filtros.equipamento);
+  }
+  var res = await q;
   return res.data || [];
+}
+
+async function criarExercicio(data) {
+  var res = await sb.from('exercicios').insert(data);
+  return res.error;
+}
+
+// ── TREINOS (templates) ───────────────────────────
+async function getTreinos() {
+  var res = await sb.from('treinos').select('*').eq('e_template', true).order('nome');
+  return res.data || [];
+}
+
+async function criarTreino(data) {
+  var res = await sb.from('treinos').insert(data).select().single();
+  return res;
+}
+
+async function adicionarExercicioAoTreino(treino_id, exercicio_id, data) {
+  var payload = Object.assign({ treino_id: treino_id, exercicio_id: exercicio_id }, data);
+  var res = await sb.from('treino_exercicios').insert(payload);
+  return res.error;
+}
+
+async function atribuirTreinoAluno(template_id, aluno_id, dia_semana) {
+  var resTpl = await sb.from('treinos').select('nome, descricao').eq('id', template_id).single();
+  if (resTpl.error) return resTpl.error;
+  var resTreino = await sb.from('treinos').insert({
+    nome: resTpl.data.nome,
+    descricao: resTpl.data.descricao,
+    dia_semana: dia_semana,
+    e_template: false,
+    aluno_id: aluno_id,
+    ativo: true
+  }).select().single();
+  if (resTreino.error) return resTreino.error;
+  var resEx = await sb.from('treino_exercicios').select('*').eq('treino_id', template_id).order('ordem');
+  var exs = resEx.data || [];
+  if (exs.length) {
+    var copies = exs.map(function(e) {
+      return { treino_id: resTreino.data.id, exercicio_id: e.exercicio_id, series: e.series, repeticoes: e.repeticoes, carga: e.carga, descanso_seg: e.descanso_seg, minutos: e.minutos, ordem: e.ordem, obs: e.obs };
+    });
+    await sb.from('treino_exercicios').insert(copies);
+  }
+  return null;
+}
+
+// ── CARGAS DO ALUNO ───────────────────────────────
+async function getCargaAluno(aluno_id, treino_exercicio_id) {
+  var res = await sb.from('aluno_cargas').select('carga').eq('aluno_id', aluno_id).eq('treino_exercicio_id', treino_exercicio_id).single();
+  return res.data ? res.data.carga : null;
+}
+
+async function salvarCargaAluno(aluno_id, treino_exercicio_id, carga) {
+  var res = await sb.from('aluno_cargas').upsert({
+    aluno_id: aluno_id,
+    treino_exercicio_id: treino_exercicio_id,
+    carga: carga,
+    updated_at: new Date().toISOString()
+  }, { onConflict: 'aluno_id,treino_exercicio_id' });
+  return res.error;
 }
 
 // ── EXECUCOES ─────────────────────────────────────

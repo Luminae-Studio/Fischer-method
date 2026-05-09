@@ -856,5 +856,110 @@ function mkMedidaColor(val,lbl,color){
 }
 
 function voltarAlunos(){alunoAtual=null;go('alunos');}
-function openNovoTreino(){toast('Montagem de treinos em breve!');}
-function editarTreino(id){toast('Edicao de treino em breve!');}
+
+async function openNovoTreino() {
+  var templates = await getTreinos();
+  var existing = document.getElementById('mod-novo-treino-aluno'); if (existing) existing.remove();
+  var m = document.createElement('div'); m.className = 'mov'; m.id = 'mod-novo-treino-aluno';
+
+  var diasOpts = ['Segunda','Terca','Quarta','Quinta','Sexta','Sabado','Domingo','Qualquer dia']
+    .map(function(d) { return '<option value="' + d + '">' + d + '</option>'; }).join('');
+
+  var lista = '';
+  if (!templates.length) {
+    lista = '<div style="text-align:center;padding:16px;font-size:12px;color:var(--muted);">Nenhum template criado ainda.<br>Crie um treino na aba Exercicios primeiro.</div>';
+  } else {
+    lista = templates.map(function(t) {
+      return '<div class="list-row" onclick="selecionarTemplateParaAtribuir(\'' + t.id + '\',\'' + t.nome.replace(/'/g, '') + '\')">' +
+        '<div style="width:36px;height:36px;border-radius:var(--rx);background:var(--green-glow);border:1px solid var(--green-border);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">&#x1F4AA;</div>' +
+        '<div class="list-row-info"><div class="list-row-title">' + t.nome + '</div>' + (t.descricao ? '<div class="list-row-sub">' + t.descricao + '</div>' : '') + '</div>' +
+        '<span style="font-size:18px;color:var(--muted);">&#x203A;</span>' +
+      '</div>';
+    }).join('');
+  }
+
+  m.innerHTML =
+    '<div class="mod">' +
+      '<div class="mod-handle"></div>' +
+      '<h3>Atribuir treino</h3>' +
+      '<div id="nta-lista">' + lista + '</div>' +
+      '<div id="nta-conf" style="display:none;">' +
+        '<div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Treino selecionado: <strong id="nta-nome-sel"></strong></div>' +
+        '<div class="fg"><label>Dia da semana</label><select id="nta-dia">' + diasOpts + '</select></div>' +
+        '<div class="mod-actions">' +
+          '<button class="btn btn-ghost" onclick="document.getElementById(\'nta-lista\').style.display=\'\';document.getElementById(\'nta-conf\').style.display=\'none\';">Voltar</button>' +
+          '<button class="btn btn-primary" onclick="confirmarAtribuirTreino()">Atribuir</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  m.addEventListener('click', function(e) { if (e.target === m) m.classList.remove('on'); });
+  document.body.appendChild(m);
+  openModal('mod-novo-treino-aluno');
+}
+
+var _templateSelecionadoId = null;
+function selecionarTemplateParaAtribuir(id, nome) {
+  _templateSelecionadoId = id;
+  document.getElementById('nta-nome-sel').textContent = nome;
+  document.getElementById('nta-lista').style.display = 'none';
+  document.getElementById('nta-conf').style.display = 'block';
+}
+
+async function confirmarAtribuirTreino() {
+  if (!_templateSelecionadoId || !alunoAtual) return;
+  var dia = document.getElementById('nta-dia').value;
+  var err = await atribuirTreinoAluno(_templateSelecionadoId, alunoAtual.id, dia);
+  if (err) { toast('Erro ao atribuir treino!'); console.error(err); return; }
+  _templateSelecionadoId = null;
+  closeModal('mod-novo-treino-aluno');
+  toast('Treino atribuido!');
+  alunoDetTab = 'visao';
+  renderAlunoDetalhe();
+  setTimeout(loadDetTab, 100);
+}
+
+function editarTreino(id) {
+  var existing = document.getElementById('mod-edit-treino-al'); if (existing) existing.remove();
+  var m = document.createElement('div'); m.className = 'mov'; m.id = 'mod-edit-treino-al';
+  var diasOpts = ['Segunda','Terca','Quarta','Quinta','Sexta','Sabado','Domingo','Qualquer dia']
+    .map(function(d) { return '<option value="' + d + '">' + d + '</option>'; }).join('');
+  m.innerHTML =
+    '<div class="mod">' +
+      '<div class="mod-handle"></div>' +
+      '<h3>Editar treino</h3>' +
+      '<div class="fg"><label>Dia da semana</label><select id="etr-dia">' + diasOpts + '</select></div>' +
+      '<div class="mod-actions">' +
+        '<button class="btn btn-danger" style="flex:none;padding:13px;" onclick="desativarTreino(\'' + id + '\')">Remover</button>' +
+        '<button class="btn btn-ghost" onclick="closeModal(\'mod-edit-treino-al\')">Cancelar</button>' +
+        '<button class="btn btn-primary" onclick="salvarEditTreino(\'' + id + '\')">Salvar</button>' +
+      '</div>' +
+    '</div>';
+  m.addEventListener('click', function(e) { if (e.target === m) m.classList.remove('on'); });
+
+  sb.from('treinos').select('dia_semana').eq('id', id).single().then(function(res) {
+    if (res.data && res.data.dia_semana) {
+      var sel = document.getElementById('etr-dia');
+      if (sel) sel.value = res.data.dia_semana;
+    }
+  });
+
+  document.body.appendChild(m);
+  openModal('mod-edit-treino-al');
+}
+
+async function salvarEditTreino(id) {
+  var dia = document.getElementById('etr-dia').value;
+  var res = await sb.from('treinos').update({ dia_semana: dia }).eq('id', id);
+  if (res.error) { toast('Erro ao salvar!'); return; }
+  closeModal('mod-edit-treino-al');
+  toast('Treino atualizado!');
+  loadDetTab();
+}
+
+async function desativarTreino(id) {
+  var res = await sb.from('treinos').update({ ativo: false }).eq('id', id);
+  if (res.error) { toast('Erro ao remover!'); return; }
+  closeModal('mod-edit-treino-al');
+  toast('Treino removido.');
+  loadDetTab();
+}
