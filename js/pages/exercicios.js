@@ -3,6 +3,7 @@ var exTab = 'exercicios';
 var exFiltros = {};
 var exTreinoDetalheId = null;
 var exTreinoDetalheNome = '';
+var _exLoading = false;
 
 var EX_MUSCULOS = ['Peito','Costas','Ombros','Biceps','Triceps','Pernas','Gluteos','Core','Panturrilha','Full Body'];
 var EX_TIPOS    = ['Forca','Cardio','Mobilidade','Alongamento'];
@@ -83,39 +84,37 @@ function abrirYT(url) {
 
 // ── BIBLIOTECA DE EXERCICIOS ──────────────────────
 async function loadExLista() {
+  if (_exLoading) return;
+  _exLoading = true;
   var el = document.getElementById('ex-content');
-  if (!el) return;
+  if (!el) { _exLoading = false; return; }
   el.innerHTML = '<div style="text-align:center;padding:30px 0;"><div class="spinner" style="margin:0 auto;"></div></div>';
 
-  var exercicios = await getExercicios(exFiltros);
+  try {
+    var exercicios = await getExercicios(exFiltros);
+    var html = '';
 
-  var html = '';
+    html += '<div style="overflow-x:auto;scrollbar-width:none;margin-bottom:10px;"><div style="display:flex;gap:6px;padding:4px 0;white-space:nowrap;">';
+    html += exChip('musculo', null, 'Todos');
+    EX_MUSCULOS.forEach(function(m) { html += exChip('musculo', m, m); });
+    html += '</div></div>';
 
-  // Filtros — musculo
-  html += '<div style="overflow-x:auto;scrollbar-width:none;margin-bottom:10px;"><div style="display:flex;gap:6px;padding:4px 0;white-space:nowrap;">';
-  html += exChip('musculo', null, 'Todos');
-  EX_MUSCULOS.forEach(function(m) { html += exChip('musculo', m, m); });
-  html += '</div></div>';
+    html += '<div style="overflow-x:auto;scrollbar-width:none;margin-bottom:14px;"><div style="display:flex;gap:6px;padding:4px 0;white-space:nowrap;">';
+    html += exChip('tipo', null, 'Todos tipos');
+    EX_TIPOS.forEach(function(t) { html += exChip('tipo', t, t); });
+    html += exChip('local', null, 'Todos locais');
+    EX_LOCAIS.forEach(function(l) { html += exChip('local', l, l); });
+    html += '</div></div>';
 
-  // Filtros — tipo
-  html += '<div style="overflow-x:auto;scrollbar-width:none;margin-bottom:14px;"><div style="display:flex;gap:6px;padding:4px 0;white-space:nowrap;">';
-  html += exChip('tipo', null, 'Todos tipos');
-  EX_TIPOS.forEach(function(t) { html += exChip('tipo', t, t); });
-  html += exChip('local', null, 'Todos locais');
-  EX_LOCAIS.forEach(function(l) { html += exChip('local', l, l); });
-  html += '</div></div>';
-
-  if (!exercicios.length) {
-    html += '<div class="empty"><div class="empty-ico">&#x1F3CB;</div><p>Nenhum exercicio cadastrado ainda.<br><span style="font-size:12px;color:var(--muted);">Use o botao + para adicionar.</span></p></div>';
+    if (!exercicios.length) {
+      html += '<div class="empty"><div class="empty-ico">&#x1F3CB;</div><p>Nenhum exercicio cadastrado ainda.<br><span style="font-size:12px;color:var(--muted);">Use o botao + para adicionar.</span></p></div>';
+    } else {
+      exercicios.forEach(function(ex) { html += exCardBiblioteca(ex); });
+    }
     el.innerHTML = html;
-    return;
+  } finally {
+    _exLoading = false;
   }
-
-  exercicios.forEach(function(ex) {
-    html += exCardBiblioteca(ex);
-  });
-
-  el.innerHTML = html;
 }
 
 function exChip(campo, valor, label) {
@@ -262,33 +261,38 @@ async function salvarNovoExercicio() {
 
 // ── TREINOS TEMPLATES ─────────────────────────────
 async function loadTreinoLista() {
+  if (_exLoading) return;
+  _exLoading = true;
   var el = document.getElementById('ex-content');
-  if (!el) return;
+  if (!el) { _exLoading = false; return; }
   el.innerHTML = '<div style="text-align:center;padding:30px 0;"><div class="spinner" style="margin:0 auto;"></div></div>';
 
-  var treinos = await getTreinos();
-  if (!treinos.length) {
-    el.innerHTML =
-      '<div class="empty"><div class="empty-ico">&#x1F4AA;</div>' +
-      '<p>Nenhum treino template ainda.<br><span style="font-size:12px;color:var(--muted);">Crie templates que podem ser<br>atribuidos a qualquer aluno.</span></p></div>';
-    return;
-  }
-
-  var html = '';
-  treinos.forEach(function(t) {
-    html +=
-      '<div class="card mb" style="cursor:pointer;" onclick="entrarTreinoDetalhe(\'' + t.id + '\',\'' + t.nome.replace(/'/g, '') + '\')">' +
-        '<div style="display:flex;align-items:center;gap:12px;">' +
-          '<div style="width:40px;height:40px;border-radius:var(--rx);background:var(--green-glow);border:1px solid var(--green-border);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">&#x1F4AA;</div>' +
-          '<div style="flex:1;min-width:0;">' +
-            '<div style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + t.nome + '</div>' +
-            (t.descricao ? '<div style="font-size:11px;color:var(--muted);margin-top:2px;">' + t.descricao + '</div>' : '') +
+  try {
+    var treinos = await getTreinos();
+    if (!treinos.length) {
+      el.innerHTML =
+        '<div class="empty"><div class="empty-ico">&#x1F4AA;</div>' +
+        '<p>Nenhum treino template ainda.<br><span style="font-size:12px;color:var(--muted);">Crie templates que podem ser<br>atribuidos a qualquer aluno.</span></p></div>';
+      return;
+    }
+    var html = '';
+    treinos.forEach(function(t) {
+      html +=
+        '<div class="card mb" style="cursor:pointer;" onclick="entrarTreinoDetalhe(\'' + t.id + '\',\'' + t.nome.replace(/'/g, '') + '\')">' +
+          '<div style="display:flex;align-items:center;gap:12px;">' +
+            '<div style="width:40px;height:40px;border-radius:var(--rx);background:var(--green-glow);border:1px solid var(--green-border);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">&#x1F4AA;</div>' +
+            '<div style="flex:1;min-width:0;">' +
+              '<div style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + t.nome + '</div>' +
+              (t.descricao ? '<div style="font-size:11px;color:var(--muted);margin-top:2px;">' + t.descricao + '</div>' : '') +
+            '</div>' +
+            '<span style="font-size:18px;color:var(--muted);">&#x203A;</span>' +
           '</div>' +
-          '<span style="font-size:18px;color:var(--muted);">&#x203A;</span>' +
-        '</div>' +
-      '</div>';
-  });
-  el.innerHTML = html;
+        '</div>';
+    });
+    el.innerHTML = html;
+  } finally {
+    _exLoading = false;
+  }
 }
 
 function entrarTreinoDetalhe(id, nome) {

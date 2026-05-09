@@ -1,5 +1,6 @@
 // FISCHER METHOD -- alunos.js
 var alunosTab = 'alunos';
+var _alunosLoading = false;
 
 function renderAlunos() {
   var el = document.getElementById('pg-alunos');
@@ -27,13 +28,19 @@ function switchAlunosTab(tab, btn) {
 }
 
 async function loadAlunosTab() {
+  if (_alunosLoading) return;
+  _alunosLoading = true;
   var el = document.getElementById('alunos-content');
-  if (!el) return;
+  if (!el) { _alunosLoading = false; return; }
   el.innerHTML = '<div style="text-align:center;padding:40px 0;"><div class="spinner" style="margin:0 auto;"></div></div>';
-  if (alunosTab === 'alunos') {
-    await loadListaAlunos();
-  } else {
-    await loadListaConvites();
+  try {
+    if (alunosTab === 'alunos') {
+      await loadListaAlunos();
+    } else {
+      await loadListaConvites();
+    }
+  } finally {
+    _alunosLoading = false;
   }
 }
 
@@ -116,6 +123,3 @@ function copiarCodigo(code) {
   });
 }
 
-function abrirAlunoDetalhe(id) {
-  toast('Perfil do aluno em breve!');
-}

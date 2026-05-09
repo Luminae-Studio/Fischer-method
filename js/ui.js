@@ -2,8 +2,17 @@
 // FISCHER METHOD — ui.js
 // ================================================
 
+// ── ESTADO DE NAVEGACAO ───────────────────────────
+var _pgCurrent = null;
+var _pgDirty = {};
+
+function markDirty(id) { _pgDirty[id] = true; }
+
 // ── NAVEGACAO ─────────────────────────────────────
 function go(id) {
+  // Fecha qualquer modal aberto antes de navegar — corrige o bug de tela bloqueada
+  document.querySelectorAll('.mov.on').forEach(function(m) { m.classList.remove('on'); });
+
   document.querySelectorAll('.pg').forEach(function(p) { p.classList.remove('on'); });
   document.querySelectorAll('.bn').forEach(function(b) { b.classList.remove('on'); });
   var pg = document.getElementById('pg-' + id);
@@ -11,6 +20,11 @@ function go(id) {
   var bn = document.getElementById('bn-' + id);
   if (bn) bn.classList.add('on');
   document.getElementById('scr').scrollTo({ top: 0, behavior: 'instant' });
+
+  // Mesma pagina e nao dirty: evita re-render desnecessario
+  if (_pgCurrent === id && !_pgDirty[id]) return;
+  _pgCurrent = id;
+  _pgDirty[id] = false;
   renderPage(id);
 }
 
@@ -29,10 +43,12 @@ function renderPage(id) {
 
 // ── MODAIS ────────────────────────────────────────
 function openModal(id) {
-  document.getElementById(id).classList.add('on');
+  var el = document.getElementById(id);
+  if (el) el.classList.add('on');
 }
 function closeModal(id) {
-  document.getElementById(id).classList.remove('on');
+  var el = document.getElementById(id);
+  if (el) el.classList.remove('on');
 }
 document.addEventListener('click', function(e) {
   if (e.target.classList.contains('mov')) {

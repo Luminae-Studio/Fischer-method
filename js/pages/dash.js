@@ -1,5 +1,5 @@
 // FISCHER METHOD -- dash.js
-var dashLoaded = false;
+var _dashLoading = false;
 
 function renderDash() {
   var el = document.getElementById('pg-dash');
@@ -29,8 +29,10 @@ function renderDash() {
 }
 
 async function loadDashData() {
+  if (_dashLoading) return;
+  _dashLoading = true;
   var el = document.getElementById('dash-content');
-  if (!el) return;
+  if (!el) { _dashLoading = false; return; }
 
   try {
     var alunos = await getTodosAlunos();
@@ -137,6 +139,8 @@ async function loadDashData() {
     console.error('Dash error:', err);
     var el2 = document.getElementById('dash-content');
     if (el2) el2.innerHTML = '<div class="empty"><div class="empty-ico">&#x26A0;</div><p>Erro ao carregar.<br><button class="btn btn-ghost btn-sm" onclick="loadDashData()">Tentar novamente</button></p></div>';
+  } finally {
+    _dashLoading = false;
   }
 }
 
