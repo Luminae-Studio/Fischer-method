@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#080c08">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Fischer Method">
+  <meta name="apple-touch-fullscreen" content="yes">
+  <link rel="apple-touch-startup-image" href="icons/icon-512.png">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <title>Fischer Method</title>
+  <link rel="stylesheet" href="css/style.css?v=20260511">
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading" class="loading">
+  <div class="spinner"></div>
+  <div style="font-size:11px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-top:8px;">Fischer Method</div>
+</div>
+
+<!-- LOGIN -->
+<div id="pg-login" class="login-wrap" style="display:none;">
+  <div class="login-logo">
+    <div class="login-emblem">F<span>M</span></div>
+    <div class="login-method">Fischer Method</div>
+  </div>
+  <div class="login-card">
+    <!-- SECAO GOOGLE -->
+    <div id="section-google">
+      <h2>Bem-vindo</h2>
+      <p>Entre com sua conta Google para acessar seus treinos e acompanhar seu progresso.</p>
+      <button class="btn btn-google btn-full" onclick="loginGoogle()">
+        <svg width="18" height="18" viewBox="0 0 48 48" fill="none">
+          <path d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 2.9l5.7-5.7C34.5 6.5 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.6-8 19.6-20 0-1.2-.1-2.5-.4-3.5z" fill="#FFC107"/>
+          <path d="M6.3 14.7l6.6 4.8C14.6 16.1 19 13 24 13c3.1 0 5.8 1.1 7.9 2.9l5.7-5.7C34.5 6.5 29.5 4 24 4 16.3 4 9.7 8.4 6.3 14.7z" fill="#FF3D00"/>
+          <path d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.4 26.7 36 24 36c-5.3 0-9.7-3.3-11.3-8H6.3C9.7 35.5 16.3 44 24 44z" fill="#4CAF50"/>
+          <path d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4 5.5l6.2 5.2C40.5 36.1 44 30.5 44 24c0-1.2-.1-2.5-.4-3.5z" fill="#1976D2"/>
+        </svg>
+        Entrar com Google
+      </button>
+    </div>
+    <!-- SECAO CONVITE -->
+    <div id="section-convite" style="display:none;">
+      <h2>Codigo de Acesso</h2>
+      <p>Voce e novo por aqui! Digite o codigo que o Matheus te enviou.</p>
+      <div class="fg">
+        <label>Codigo de convite</label>
+        <input type="text" id="invite-input" placeholder="Ex: FM-ANA-X7K2" maxlength="20"
+          style="text-transform:uppercase;letter-spacing:.1em;font-size:18px;font-weight:700;text-align:center;"
+          oninput="this.value=this.value.toUpperCase()">
+      </div>
+      <button class="btn btn-primary btn-full" onclick="validarConvite()">Confirmar acesso</button>
+      <div style="margin-top:12px;text-align:center;">
+        <button class="btn btn-ghost btn-sm" onclick="logout()" style="font-size:12px;color:var(--muted);">Usar outra conta Google</button>
+      </div>
+    </div>
+    <div id="login-error" style="display:none;margin-top:12px;padding:10px 14px;background:var(--red-pale);border:1px solid rgba(224,85,85,0.3);border-radius:var(--rs);font-size:12px;color:var(--red);"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;">
+  <div id="scr">
+    <div id="pg-inicio" class="pg"></div>
+    <div id="pg-treinos" class="pg"></div>
+    <div id="pg-exec" class="pg"></div>
+    <div id="pg-progresso" class="pg"></div>
+    <div id="pg-perfil" class="pg"></div>
+    <div id="pg-dash" class="pg"></div>
+    <div id="pg-alunos" class="pg"></div>
+    <div id="pg-aluno-det" class="pg"></div>
+    <div id="pg-exercicios" class="pg"></div>
+  </div>
+
+  <!-- NAV ALUNO -->
+  <nav id="bnav-aluno" class="bnav-fixed" style="display:none;">
+    <button class="bn" id="bn-inicio" onclick="go('inicio')">
+      <span class="ico">&#x1F3E0;</span><span class="lbl">Inicio</span>
+    </button>
+    <button class="bn" id="bn-treinos" onclick="go('treinos')">
+      <span class="ico">&#x1F4AA;</span><span class="lbl">Treinos</span>
+    </button>
+    <button class="bn" id="bn-progresso" onclick="go('progresso')">
+      <span class="ico">&#x1F4C8;</span><span class="lbl">Progresso</span>
+    </button>
+    <button class="bn" id="bn-perfil" onclick="go('perfil')">
+      <span class="ico">&#x1F464;</span><span class="lbl">Perfil</span>
+    </button>
+  </nav>
+
+  <!-- NAV PERSONAL -->
+  <nav id="bnav-personal" class="bnav-fixed" style="display:none;">
+    <button class="bn" id="bn-dash" onclick="go('dash')">
+      <span class="ico">&#x1F4CA;</span><span class="lbl">Dashboard</span>
+    </button>
+    <button class="bn" id="bn-alunos" onclick="go('alunos')">
+      <span class="ico">&#x1F465;</span><span class="lbl">Alunos</span>
+    </button>
+    <button class="bn" id="bn-exercicios" onclick="go('exercicios')">
+      <span class="ico">&#x1F3CB;</span><span class="lbl">Exercicios</span>
+    </button>
+    <button class="bn" id="bn-perfil-p" onclick="go('perfil')">
+      <span class="ico">&#x1F464;</span><span class="lbl">Perfil</span>
+    </button>
+  </nav>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- SUPABASE -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- APP -- versao 20260511 -->
+<script src="js/config.js?v=20260511"></script>
+<script src="js/auth.js?v=20260511"></script>
+<script src="js/ui.js?v=20260511"></script>
+<script src="js/db.js?v=20260511"></script>
+<script src="js/pages/inicio.js?v=20260511"></script>
+<script src="js/pages/treinos.js?v=20260511"></script>
+<script src="js/pages/progresso.js?v=20260511"></script>
+<script src="js/pages/perfil.js?v=20260511"></script>
+<script src="js/pages/dash.js?v=20260511"></script>
+<script src="js/pages/alunos.js?v=20260511"></script>
+<script src="js/pages/aluno_detalhe.js?v=20260511"></script>
+<script src="js/pages/exercicios.js?v=20260511"></script>
+<script src="js/app.js?v=20260511"></script>
+
+</body>
+</html>
