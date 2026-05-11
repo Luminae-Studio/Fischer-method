@@ -1,4 +1,18 @@
 // FISCHER METHOD -- app.js
+
+// Global safety net: prevent unhandled promise rejections from leaving spinners on screen
+window.addEventListener('unhandledrejection', function(e) {
+  console.error('Unhandled rejection:', e.reason);
+  // If a tab content area is stuck showing a spinner, replace it with an error state
+  var detEl = document.getElementById('alu-det-content');
+  if (detEl && detEl.querySelector('.spinner')) {
+    detEl.innerHTML =
+      '<div class="empty"><div class="empty-ico">&#x26A0;</div>' +
+      '<p>Erro inesperado.<br>' +
+      '<button class="btn btn-ghost btn-sm" onclick="loadDetTab()">Tentar novamente</button></p></div>';
+  }
+});
+
 document.addEventListener('DOMContentLoaded', function() {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js')
