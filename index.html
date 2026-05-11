@@ -1,147 +1,448 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-2Y25B030TK"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-2Y25B030TK');
-</script>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#080c08">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Fischer Method">
-  <meta name="apple-touch-fullscreen" content="yes">
-  <link rel="apple-touch-startup-image" href="icons/icon-512.png">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <title>Fischer Method</title>
-  <link rel="stylesheet" href="css/style.css?v=20260511">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-2Y25B030TK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-2Y25B030TK');
+  </script>
+  <title>Personal Trainer em Cuiabá | Matheus Fischer - Treino Personalizado</title>
+  <meta name="description" content="Procurando um personal trainer em Cuiabá? Matheus Fischer oferece treino personalizado com foco em hipertrofia, emagrecimento e glúteos 360. Agende sua avaliação gratuita.">
+  <meta name="keywords" content="personal trainer em cuiabá, personal trainer cuiabá, personal cuiabá mt, treino personalizado cuiabá, hipertrofia cuiabá, emagrecimento cuiabá, glúteos 360 cuiabá, academia cuiabá, personal trainer mato grosso">
+  <meta property="og:title" content="Personal Trainer em Cuiabá | Matheus Fischer">
+  <meta property="og:description" content="Personal trainer em Cuiabá com treino personalizado. Disciplina, foco e resultados. Agende sua avaliação gratuita.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="assets/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Personal Trainer em Cuiabá | Matheus Fischer">
+  <meta name="twitter:description" content="Personal trainer em Cuiabá com treino personalizado. Disciplina, foco e resultados.">
+  <meta name="twitter:image" content="assets/og-image.png">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2300C853'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='%230A0A0A' font-family='sans-serif' font-weight='900' font-size='20'%3EMF%3C/text%3E%3C/svg%3E">
 </head>
 <body>
 
-<!-- LOADING -->
-<div id="loading" class="loading">
-  <div class="spinner"></div>
-  <div style="font-size:11px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-top:8px;">Fischer Method</div>
+<!-- LOADER -->
+<div class="loader" id="loader">
+  <div class="loader-inner">
+    <div class="logo"><div class="logo-icon">MF</div>MATHEUS FISCHER</div>
+    <div class="loader-bar"></div>
+  </div>
 </div>
 
-<!-- LOGIN -->
-<div id="pg-login" class="login-wrap" style="display:none;">
-  <div class="login-logo">
-    <div class="login-emblem">F<span>M</span></div>
-    <div class="login-method">Fischer Method</div>
+<!-- HEADER -->
+<header class="header" id="header">
+  <div class="container">
+    <a href="#" class="logo"><div class="logo-icon">MF</div>MATHEUS FISCHER</a>
+    <nav class="nav-menu" id="navMenu">
+      <a href="#sobre">Sobre</a>
+      <a href="#servicos">Serviços</a>
+      <a href="#planos">Planos</a>
+      <a href="#faq">FAQ</a>
+      <a href="#contato">Contato</a>
+      <a href="https://wa.me/556599289007?text=Olá! Gostaria de agendar minha avaliação gratuita." class="nav-cta" target="_blank">Agendar Avaliação</a>
+    </nav>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
   </div>
-  <div class="login-card">
-    <!-- SECAO GOOGLE -->
-    <div id="section-google">
-      <h2>Bem-vindo</h2>
-      <p>Entre com sua conta Google para acessar seus treinos e acompanhar seu progresso.</p>
-      <button class="btn btn-google btn-full" onclick="loginGoogle()">
-        <svg width="18" height="18" viewBox="0 0 48 48" fill="none">
-          <path d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 2.9l5.7-5.7C34.5 6.5 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.6-8 19.6-20 0-1.2-.1-2.5-.4-3.5z" fill="#FFC107"/>
-          <path d="M6.3 14.7l6.6 4.8C14.6 16.1 19 13 24 13c3.1 0 5.8 1.1 7.9 2.9l5.7-5.7C34.5 6.5 29.5 4 24 4 16.3 4 9.7 8.4 6.3 14.7z" fill="#FF3D00"/>
-          <path d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.4 26.7 36 24 36c-5.3 0-9.7-3.3-11.3-8H6.3C9.7 35.5 16.3 44 24 44z" fill="#4CAF50"/>
-          <path d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4 5.5l6.2 5.2C40.5 36.1 44 30.5 44 24c0-1.2-.1-2.5-.4-3.5z" fill="#1976D2"/>
-        </svg>
-        Entrar com Google
-      </button>
-    </div>
-    <!-- SECAO CONVITE -->
-    <div id="section-convite" style="display:none;">
-      <h2>Codigo de Acesso</h2>
-      <p>Voce e novo por aqui! Digite o codigo que o Matheus te enviou.</p>
-      <div class="fg">
-        <label>Codigo de convite</label>
-        <input type="text" id="invite-input" placeholder="Ex: FM-ANA-X7K2" maxlength="20"
-          style="text-transform:uppercase;letter-spacing:.1em;font-size:18px;font-weight:700;text-align:center;"
-          oninput="this.value=this.value.toUpperCase()">
+</header>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-bg">
+    <img src="assets/hero-matheus.jpg" alt="Matheus Fischer - Personal Trainer em Cuiabá" loading="eager">
+  </div>
+  <div class="hero-overlay"></div>
+  <div class="container">
+    <div class="hero-content">
+      <div class="hero-tag">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        PERSONAL TRAINER
       </div>
-      <button class="btn btn-primary btn-full" onclick="validarConvite()">Confirmar acesso</button>
-      <div style="margin-top:12px;text-align:center;">
-        <button class="btn btn-ghost btn-sm" onclick="logout()" style="font-size:12px;color:var(--muted);">Usar outra conta Google</button>
+      <h1 class="hero-headline">DISCIPLINA<br>FOCO <span>&</span><br>RESULTADOS</h1>
+      <p class="hero-subheadline">Treinamento personalizado para transformar seu corpo, sua mente e sua rotina com acompanhamento profissional e estratégia individual.</p>
+      <div class="hero-benefits">
+        <div class="hero-benefit">
+          <div class="hero-benefit-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></div>
+          <span>Treinos Personalizados</span>
+        </div>
+        <div class="hero-benefit">
+          <div class="hero-benefit-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg></div>
+          <span>Foco em Resultados</span>
+        </div>
+        <div class="hero-benefit">
+          <div class="hero-benefit-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg></div>
+          <span>Saúde, Força e Performance</span>
+        </div>
+      </div>
+      <div class="hero-buttons">
+        <a href="https://wa.me/556599289007?text=Olá! Gostaria de agendar minha avaliação gratuita." class="btn-primary" target="_blank">
+          Comece sua transformação
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
       </div>
     </div>
-    <div id="login-error" style="display:none;margin-top:12px;padding:10px 14px;background:var(--red-pale);border:1px solid rgba(224,85,85,0.3);border-radius:var(--rs);font-size:12px;color:var(--red);"></div>
   </div>
-</div>
+</section>
 
-<!-- APP -->
-<div id="app" style="display:none;">
-  <div id="scr">
-    <div id="pg-inicio" class="pg"></div>
-    <div id="pg-treinos" class="pg"></div>
-    <div id="pg-exec" class="pg"></div>
-    <div id="pg-progresso" class="pg"></div>
-    <div id="pg-perfil" class="pg"></div>
-    <div id="pg-dash" class="pg"></div>
-    <div id="pg-alunos" class="pg"></div>
-    <div id="pg-aluno-det" class="pg"></div>
-    <div id="pg-exercicios" class="pg"></div>
+<!-- ABOUT -->
+<section class="about" id="sobre">
+  <div class="container">
+    <div class="about-image reveal-left">
+      <img src="assets/about-matheus.jpg" alt="Matheus Fischer - Personal Trainer em Cuiabá">
+    </div>
+    <div class="about-content reveal-right">
+      <div class="section-tag">Sobre</div>
+      <h2 class="section-title">Quem vai te acompanhar nessa <span>transformação</span></h2>
+      <p>Sou Matheus Fischer, tenho 24 anos, sou formado em Educação Física e atuo como <strong>personal trainer em Cuiabá</strong>/MT. Meu trabalho vai muito além de montar treino: eu acompanho cada detalhe da sua evolução.</p>
+      <p>Minha metodologia é focada em execução correta, progressão estratégica e acompanhamento individual. Acredito que cada pessoa tem um caminho diferente — e meu papel é construir esse caminho com você, do jeito certo.</p>
+      <div class="about-highlights">
+        <div class="about-highlight">
+          <div class="about-highlight-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <p><strong>Especialista em Glúteos 360,</strong> Hipertrofia e Emagrecimento</p>
+        </div>
+        <div class="about-highlight">
+          <div class="about-highlight-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <p><strong>Formação em Educação Física</strong> com foco em treinamento personalizado</p>
+        </div>
+        <div class="about-highlight">
+          <div class="about-highlight-icon"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <p><strong>Acompanhamento próximo e humanizado,</strong> porque resultado vem com constância e suporte</p>
+        </div>
+      </div>
+    </div>
   </div>
+</section>
 
-  <!-- NAV ALUNO -->
-  <nav id="bnav-aluno" class="bnav-fixed" style="display:none;">
-    <button class="bn" id="bn-inicio" onclick="go('inicio')">
-      <span class="ico">&#x1F3E0;</span><span class="lbl">Inicio</span>
-    </button>
-    <button class="bn" id="bn-treinos" onclick="go('treinos')">
-      <span class="ico">&#x1F4AA;</span><span class="lbl">Treinos</span>
-    </button>
-    <button class="bn" id="bn-progresso" onclick="go('progresso')">
-      <span class="ico">&#x1F4C8;</span><span class="lbl">Progresso</span>
-    </button>
-    <button class="bn" id="bn-perfil" onclick="go('perfil')">
-      <span class="ico">&#x1F464;</span><span class="lbl">Perfil</span>
-    </button>
-  </nav>
+<!-- DIFFERENTIALS -->
+<section class="differentials" id="diferenciais">
+  <div class="container text-center">
+    <div class="section-tag reveal">Diferenciais</div>
+    <h2 class="section-title reveal">Por que treinar com <span>Matheus Fischer</span></h2>
+    <p class="section-subtitle reveal">Cada detalhe do seu treino é pensado estrategicamente para gerar evolução real e consistente.</p>
+    <div class="diff-grid">
+      <div class="diff-card reveal delay-1">
+        <div class="diff-icon"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <h3>Execução Correta e Técnica</h3>
+        <p>Cada movimento é corrigido e otimizado para máxima eficiência e prevenção de lesões.</p>
+      </div>
+      <div class="diff-card reveal delay-2">
+        <div class="diff-icon"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+        <h3>Progressão Estratégica</h3>
+        <p>Evolução planejada com periodização inteligente para alcançar seus objetivos de forma constante.</p>
+      </div>
+      <div class="diff-card reveal delay-3">
+        <div class="diff-icon"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+        <h3>Acompanhamento Próximo</h3>
+        <p>Suporte contínuo e presença real na sua jornada. Você nunca treina sozinho.</p>
+      </div>
+      <div class="diff-card reveal delay-4">
+        <div class="diff-icon"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div>
+        <h3>Consultoria Individual</h3>
+        <p>Plano 100% personalizado para sua realidade, seus objetivos e seu ritmo de vida.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
-  <!-- NAV PERSONAL -->
-  <nav id="bnav-personal" class="bnav-fixed" style="display:none;">
-    <button class="bn" id="bn-dash" onclick="go('dash')">
-      <span class="ico">&#x1F4CA;</span><span class="lbl">Dashboard</span>
-    </button>
-    <button class="bn" id="bn-alunos" onclick="go('alunos')">
-      <span class="ico">&#x1F465;</span><span class="lbl">Alunos</span>
-    </button>
-    <button class="bn" id="bn-exercicios" onclick="go('exercicios')">
-      <span class="ico">&#x1F3CB;</span><span class="lbl">Exercicios</span>
-    </button>
-    <button class="bn" id="bn-perfil-p" onclick="go('perfil')">
-      <span class="ico">&#x1F464;</span><span class="lbl">Perfil</span>
-    </button>
-  </nav>
-</div>
+<!-- SERVICES -->
+<section class="services" id="servicos">
+  <div class="container text-center">
+    <div class="section-tag reveal">Serviços</div>
+    <h2 class="section-title reveal">Soluções para cada <span>objetivo</span></h2>
+    <p class="section-subtitle reveal">Do presencial ao online, tenho o formato ideal para transformar seus resultados.</p>
+    <div class="services-grid">
+      <div class="service-card reveal delay-1">
+        <div class="service-card-header">
+          <div class="service-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div>
+          <h3>Personal Presencial</h3>
+        </div>
+        <p>Treino individual presencial em Cuiabá com acompanhamento completo, correção de execução em tempo real e motivação constante para extrair o máximo de cada sessão.</p>
+        <a href="https://wa.me/556599289007?text=Olá! Tenho interesse no Personal Presencial." class="btn-service" target="_blank">Saiba mais <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+      </div>
+      <div class="service-card reveal delay-2">
+        <div class="service-card-header">
+          <div class="service-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+          <h3>Consultoria Online</h3>
+        </div>
+        <p>Treino personalizado na palma da sua mão. Ideal para quem quer acompanhamento profissional de qualidade, esteja onde estiver. Planilha completa, vídeos e suporte direto.</p>
+        <a href="https://wa.me/556599289007?text=Olá! Tenho interesse na Consultoria Online." class="btn-service" target="_blank">Saiba mais <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+      </div>
+      <div class="service-card reveal delay-3">
+        <div class="service-card-header">
+          <div class="service-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+          <h3>Acompanhamento Mensal</h3>
+        </div>
+        <p>Reavaliações mensais, ajustes de treino, progressão acompanhada e suporte contínuo. Evolua mês a mês com estratégia e consistência.</p>
+        <a href="https://wa.me/556599289007?text=Olá! Tenho interesse no Acompanhamento Mensal." class="btn-service" target="_blank">Saiba mais <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+      </div>
+      <div class="service-card reveal delay-4">
+        <div class="service-card-header">
+          <div class="service-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+          <h3>Avaliação Física Gratuita</h3>
+        </div>
+        <p>Primeira avaliação sem custo. Análise completa de composição corporal, postura, mobilidade e definição de objetivos para montar seu plano ideal.</p>
+        <a href="https://wa.me/556599289007?text=Olá! Gostaria de agendar minha avaliação gratuita." class="btn-service" target="_blank">Agendar agora <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+      </div>
+    </div>
+  </div>
+</section>
 
-<!-- TOAST -->
-<div id="toast"></div>
+<!-- HOW IT WORKS -->
+<section class="how-it-works" id="como-funciona">
+  <div class="container text-center">
+    <div class="section-tag reveal">Como funciona</div>
+    <h2 class="section-title reveal">Seu caminho até o <span>resultado</span></h2>
+    <p class="section-subtitle reveal">Um processo claro, organizado e estratégico para alcançar seus objetivos.</p>
+    <div class="steps-grid">
+      <div class="step-item reveal delay-1"><div class="step-number">1</div><h3>Contato Inicial</h3><p>Fale comigo pelo WhatsApp ou formulário</p></div>
+      <div class="step-item reveal delay-2"><div class="step-number">2</div><h3>Avaliação Gratuita</h3><p>Análise completa do seu perfil e condição</p></div>
+      <div class="step-item reveal delay-3"><div class="step-number">3</div><h3>Definição de Objetivo</h3><p>Traçamos juntos suas metas reais</p></div>
+      <div class="step-item reveal delay-4"><div class="step-number">4</div><h3>Plano Personalizado</h3><p>Treino montado exclusivamente para você</p></div>
+      <div class="step-item reveal delay-5"><div class="step-number">5</div><h3>Acompanhamento</h3><p>Evolução contínua com suporte constante</p></div>
+    </div>
+  </div>
+</section>
 
-<!-- SUPABASE -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- PLANS -->
+<section class="plans" id="planos">
+  <div class="container text-center">
+    <div class="section-tag reveal">Planos</div>
+    <h2 class="section-title reveal">Escolha o plano <span>ideal para você</span></h2>
+    <p class="section-subtitle reveal">Sem surpresas. Consulte valores diretamente pelo WhatsApp.</p>
+    <div class="plans-grid">
+      <div class="plan-card reveal delay-1">
+        <div class="plan-card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+        <h3>Mensal</h3>
+        <p class="plan-desc">Ideal para começar e experimentar o acompanhamento personalizado com flexibilidade.</p>
+        <ul class="plan-features">
+          <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Treino personalizado</li>
+          <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Suporte via WhatsApp</li>
+          <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Avaliação física</li>
+        </ul>
+        <a href="https://wa.me/556599289007?text=Olá! Gostaria de saber os valores do plano Mensal." class="btn-plan btn-outline" target="_blank">Consultar valores</a>
+      </div>
+      <div class="plan-card featured reveal delay-2">
+        <div class="plan-card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+        <h3>Trimestral</h3>
+        <p class="plan-desc">O tempo ideal para ver resultados consistentes com progressão estratégica.</p>
+        <ul class="plan-features">
+          <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Tudo do plano mensal</li>
+          <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Reavaliações mensais</li>
+          <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Ajustes de periodização</li>
+          <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Condição especial</li>
+        </ul>
+        <a href="https://wa.me/556599289007?text=Olá! Gostaria de saber os valores do plano Trimestral." class="btn-plan btn-primary" target="_blank">Consultar valores</a>
+      </div>
+      <div class="plan-card reveal delay-3">
+        <div class="plan-card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <h3>Semestral</h3>
+        <p class="plan-desc">Para quem quer transformação completa com comprometimento e o melhor custo-benefício.</p>
+        <ul class="plan-features">
+          <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Tudo do plano trimestral</li>
+          <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Melhor custo-benefício</li>
+          <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Acompanhamento premium</li>
+          <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Prioridade no atendimento</li>
+        </ul>
+        <a href="https://wa.me/556599289007?text=Olá! Gostaria de saber os valores do plano Semestral." class="btn-plan btn-outline" target="_blank">Consultar valores</a>
+      </div>
+      <div class="plan-card reveal delay-4">
+        <div class="plan-card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <h3>Dupla</h3>
+        <p class="plan-desc">Compartilhe sua jornada fitness com alguém e tenha acompanhamento profissional com mais economia.</p>
+        <ul class="plan-features">
+          <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Sessão para 2 alunos</li>
+          <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Correção de postura e execução</li>
+          <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Treino adaptado para cada nível</li>
+          <li><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Acompanhamento profissional</li>
+        </ul>
+        <a href="https://wa.me/556599289007?text=Olá! Gostaria de saber os valores do plano Dupla." class="btn-plan btn-outline" target="_blank">Consultar valores</a>
+      </div>
+    </div>
+  </div>
+</section>
 
-<!-- APP -- versao 20260511 -->
-<script src="js/config.js?v=20260511"></script>
-<script src="js/auth.js?v=20260511"></script>
-<script src="js/ui.js?v=20260511"></script>
-<script src="js/db.js?v=20260511"></script>
-<script src="js/pages/inicio.js?v=20260511"></script>
-<script src="js/pages/treinos.js?v=20260511"></script>
-<script src="js/pages/progresso.js?v=20260511"></script>
-<script src="js/pages/perfil.js?v=20260511"></script>
-<script src="js/pages/dash.js?v=20260511"></script>
-<script src="js/pages/alunos.js?v=20260511"></script>
-<script src="js/pages/aluno_detalhe.js?v=20260511"></script>
-<script src="js/pages/exercicios.js?v=20260511"></script>
-<script src="js/app.js?v=20260511"></script>
+<!-- FAQ -->
+<section class="faq" id="faq">
+  <div class="container text-center">
+    <div class="section-tag reveal">Dúvidas Frequentes</div>
+    <h2 class="section-title reveal">Perguntas <span>frequentes</span></h2>
+    <p class="section-subtitle reveal">Tire suas dúvidas antes de começar.</p>
+    <div class="faq-grid">
+      <div class="faq-item reveal delay-1">
+        <button class="faq-question" id="faq-btn-1">Atende iniciantes?<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="faq-answer"><div class="faq-answer-inner">Com certeza! Grande parte dos meus alunos começaram do zero. Meu trabalho é justamente adaptar o treino ao seu nível atual e evoluir com segurança, técnica e estratégia. Iniciantes são muito bem-vindos.</div></div>
+      </div>
+      <div class="faq-item reveal delay-2">
+        <button class="faq-question" id="faq-btn-2">Treino online funciona?<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="faq-answer"><div class="faq-answer-inner">Sim! A consultoria online oferece treino personalizado com vídeos explicativos, planilha completa e suporte via WhatsApp. Funciona muito bem para quem tem disciplina e quer acompanhamento profissional de qualquer lugar.</div></div>
+      </div>
+      <div class="faq-item reveal delay-3">
+        <button class="faq-question" id="faq-btn-3">Como funciona a avaliação?<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="faq-answer"><div class="faq-answer-inner">A avaliação é gratuita e inclui análise de composição corporal, postura, mobilidade, histórico de treino e definição dos seus objetivos. A partir dela, monto seu plano de treino 100% personalizado.</div></div>
+      </div>
+      <div class="faq-item reveal delay-4">
+        <button class="faq-question" id="faq-btn-4">Quanto tempo para ver resultados?<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="faq-answer"><div class="faq-answer-inner">Depende do objetivo, da consistência e da alimentação. Mas com treino regular e acompanhamento, em 30 dias você já sente diferença. Em 90 dias, as pessoas ao seu redor começam a notar. O segredo está na constância.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
 
+<!-- INSTAGRAM -->
+<section class="instagram" id="instagram">
+  <div class="container text-center">
+    <div class="section-tag reveal">Instagram</div>
+    <h2 class="section-title reveal">Acompanhe no <span>Instagram</span></h2>
+    <p class="section-subtitle reveal">Conteúdo, dicas de treino e bastidores da rotina fitness.</p>
+    <div class="instagram-grid">
+      <a href="https://www.instagram.com/matheusfischer.personal/" target="_blank" rel="noopener" class="instagram-card reveal delay-1">
+        <img src="assets/matheus1.webp" alt="Matheus Fischer Personal Trainer">
+        <div class="ig-overlay"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div>
+      </a>
+      <a href="https://www.instagram.com/matheusfischer.personal/" target="_blank" rel="noopener" class="instagram-card reveal delay-2">
+        <img src="assets/matheus2.webp" alt="Matheus Fischer Personal Trainer">
+        <div class="ig-overlay"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div>
+      </a>
+      <a href="https://www.instagram.com/matheusfischer.personal/" target="_blank" rel="noopener" class="instagram-card reveal delay-3">
+        <img src="assets/gym-matheus.webp" alt="Matheus Fischer Personal Trainer">
+        <div class="ig-overlay"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div>
+      </a>
+    </div>
+    <div class="instagram-handle reveal">
+      <a href="https://www.instagram.com/matheusfischer.personal/" target="_blank">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        @matheusfischer.personal
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="cta-final" id="cta-final">
+  <div class="container">
+    <div class="cta-final-content reveal-scale">
+      <div class="section-tag">Comece agora</div>
+      <h2 class="section-title">Seu resultado começa com uma <span>decisão</span></h2>
+      <p class="section-subtitle">Agende sua avaliação gratuita e comece um acompanhamento estratégico, personalizado e focado em resultado real.</p>
+      <div class="cta-final-buttons">
+        <a href="https://wa.me/556599289007?text=Olá! Gostaria de agendar minha avaliação gratuita." class="btn-whatsapp" target="_blank">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Falar no WhatsApp
+        </a>
+        <a href="#contato" class="btn-primary">
+          Agendar Avaliação
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contato">
+  <div class="container">
+    <div class="contact-info reveal-left">
+      <div class="section-tag">Contato</div>
+      <h2 class="section-title">Vamos começar sua <span>transformação</span></h2>
+      <p class="section-subtitle">Preencha o formulário ou entre em contato diretamente pelo WhatsApp.</p>
+      <h3>Informações de contato</h3>
+      <div class="contact-info-item">
+        <div class="contact-info-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+        <p><strong>Localização</strong>Cuiabá, Mato Grosso</p>
+      </div>
+      <div class="contact-info-item">
+        <div class="contact-info-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg></div>
+        <p><strong>WhatsApp</strong>(65) 9 9289-007</p>
+      </div>
+      <div class="contact-info-item">
+        <div class="contact-info-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div>
+        <p><strong>Instagram</strong>@matheusfischer.personal</p>
+      </div>
+    </div>
+    <div class="contact-form reveal-right" id="contactForm">
+      <h3>Agende sua avaliação gratuita</h3>
+      <form id="formContact" onsubmit="handleFormSubmit(event)">
+        <div class="form-row">
+          <div class="form-group"><label for="name">Nome</label><input type="text" id="name" placeholder="Seu nome completo" required></div>
+          <div class="form-group"><label for="phone">WhatsApp</label><input type="tel" id="phone" placeholder="(65) 9 9999-9999" required></div>
+        </div>
+        <div class="form-group"><label for="email">E-mail</label><input type="email" id="email" placeholder="seu@email.com"></div>
+        <div class="form-group"><label for="objective">Objetivo</label>
+          <select id="objective">
+            <option value="" disabled selected>Selecione seu objetivo</option>
+            <option value="hipertrofia">Hipertrofia</option>
+            <option value="emagrecimento">Emagrecimento</option>
+            <option value="gluteos">Glúteos 360</option>
+            <option value="condicionamento">Condicionamento</option>
+            <option value="outro">Outro</option>
+          </select>
+        </div>
+        <div class="form-group"><label for="message">Mensagem</label><textarea id="message" placeholder="Conte um pouco sobre você e seus objetivos..." rows="4"></textarea></div>
+        <button type="submit" class="btn-primary">Enviar mensagem <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+      </form>
+      <div class="form-success" id="formSuccess">
+        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <h4>Mensagem enviada!</h4>
+        <p>Entraremos em contato pelo WhatsApp em breve. Fique de olho!</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo"><div class="logo-icon">MF</div>MATHEUS FISCHER</div>
+        <p>Personal Trainer em Cuiabá/MT. Disciplina, foco e resultados. Transformando vidas através do treino personalizado.</p>
+        <div class="footer-social">
+          <a href="https://www.instagram.com/matheusfischer.personal/" target="_blank" aria-label="Instagram"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          <a href="https://wa.me/556599289007" target="_blank" aria-label="WhatsApp"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Navegação</h4>
+        <a href="#sobre">Sobre</a><a href="#servicos">Serviços</a><a href="#planos">Planos</a><a href="#faq">FAQ</a><a href="#contato">Contato</a>
+      </div>
+      <div class="footer-col">
+        <h4>Serviços</h4>
+        <a href="#servicos">Personal Presencial</a><a href="#servicos">Consultoria Online</a><a href="#servicos">Acompanhamento Mensal</a><a href="#servicos">Avaliação Gratuita</a>
+      </div>
+      <div class="footer-col">
+        <h4>Contato</h4>
+        <a href="https://wa.me/556599289007" target="_blank">WhatsApp: (65) 9 9289-007</a>
+        <a href="https://www.instagram.com/matheusfischer.personal/" target="_blank">@matheusfischer.personal</a>
+        <a>Cuiabá, Mato Grosso</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Matheus Fischer. Todos os direitos reservados.</p>
+      <p>Desenvolvido por Luminae Studio</p>
+    </div>
+  </div>
+</footer>
+
+<!-- FLOATING WHATSAPP -->
+<a href="https://wa.me/556599289007?text=Olá! Gostaria de mais informações sobre o personal." class="whatsapp-float" id="whatsappFloat" target="_blank" aria-label="WhatsApp">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+  <span class="tooltip">Fale comigo!</span>
+</a>
+
+<!-- SCROLL TO TOP -->
+<button class="scroll-top" id="scrollTop" aria-label="Voltar ao topo">
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+</button>
+
+<script src="script.js"></script>
 </body>
 </html>
