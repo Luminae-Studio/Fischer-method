@@ -1,5 +1,5 @@
-// FISCHER METHOD -- sw.js v6
-var CACHE = 'fischer-v6';
+// FISCHER METHOD -- sw.js v7
+var CACHE = 'fischer-v7';
 
 self.addEventListener('install', function(e) {
   self.skipWaiting();
