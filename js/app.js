@@ -26,18 +26,20 @@ window.addEventListener('unhandledrejection', function(e) {
 
 document.addEventListener('DOMContentLoaded', function() {
   if ('serviceWorker' in navigator) {
+    // Quando o SW novo assume o controle, recarrega a pagina automaticamente
+    // para garantir que os arquivos novos sejam carregados sem o usuario precisar
+    // limpar cache manualmente
+    var swAtualizado = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function() {
+      if (swAtualizado) return;
+      swAtualizado = true;
+      console.log('Novo SW ativo — recarregando para aplicar atualizacao...');
+      window.location.reload();
+    });
+
     navigator.serviceWorker.register('/sw.js')
       .then(function(reg) {
         console.log('SW registrado:', reg.scope);
-        // Detecta atualizacao disponivel
-        reg.addEventListener('updatefound', function() {
-          var newWorker = reg.installing;
-          newWorker.addEventListener('statechange', function() {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('Nova versao disponivel!');
-            }
-          });
-        });
       })
       .catch(function(err) { console.log('SW erro:', err); });
 
