@@ -220,7 +220,7 @@ function openNovoExercicio() {
       '<div class="fg"><label>Nome</label><input type="text" id="nex-nome" placeholder="Ex: Supino Reto"></div>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
         '<div class="fg"><label>Musculo</label><select id="nex-musculo"><option value="">--</option>' + muscOpts + '</select></div>' +
-        '<div class="fg"><label>Tipo</label><select id="nex-tipo"><option value="">--</option>' + tipoOpts + '</select></div>' +
+        '<div class="fg"><label>Tipo</label><select id="nex-tipo" onchange="exTipoChanged()"><option value="">-- Selecione --</option>' + tipoOpts + '</select></div>' +
       '</div>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
         '<div class="fg"><label>Local</label><select id="nex-local"><option value="">--</option>' + localOpts + '</select></div>' +
@@ -228,10 +228,25 @@ function openNovoExercicio() {
       '</div>' +
       '<div class="fg"><label>URL do YouTube</label><input type="url" id="nex-yt" placeholder="https://youtube.com/watch?v=..."></div>' +
       '<div class="fg"><label>Instrucoes</label><textarea id="nex-inst" placeholder="Como executar o exercicio..."></textarea></div>' +
-      '<div class="fg"><label>Duracao sugerida (min) — cardio</label><input type="number" id="nex-min" placeholder="Ex: 20" min="1"></div>' +
+
+      // Campos condicionais: Forca / Mobilidade
+      '<div id="nex-bloco-forca" style="display:none;">' +
+        '<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">Prescricao padrao</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">' +
+          '<div class="fg"><label>Series</label><input type="number" id="nex-series" placeholder="3" min="1"></div>' +
+          '<div class="fg"><label>Repeticoes</label><input type="text" id="nex-reps" placeholder="12"></div>' +
+          '<div class="fg"><label>Descanso (s)</label><input type="number" id="nex-desc" placeholder="60" min="0"></div>' +
+        '</div>' +
+      '</div>' +
+
+      // Campos condicionais: Cardio / Alongamento
+      '<div id="nex-bloco-cardio" style="display:none;">' +
+        '<div class="fg"><label>Duracao sugerida (min)</label><input type="number" id="nex-min" placeholder="Ex: 20" min="1"></div>' +
+      '</div>' +
+
       '<div class="mod-actions">' +
         '<button class="btn btn-ghost" onclick="closeModal(\'mod-novo-ex\')">Cancelar</button>' +
-        '<button class="btn btn-primary" onclick="salvarNovoExercicio()">Salvar</button>' +
+        '<button class="btn btn-primary" id="nex-btn-salvar" onclick="salvarNovoExercicio()">Salvar</button>' +
       '</div>' +
     '</div>';
   m.addEventListener('click', function(e) { if (e.target === m) m.classList.remove('on'); });
@@ -239,24 +254,63 @@ function openNovoExercicio() {
   openModal('mod-novo-ex');
 }
 
+// Mostra/oculta campos de acordo com o tipo selecionado
+function exTipoChanged() {
+  var tipo = document.getElementById('nex-tipo').value;
+  var blocoForca  = document.getElementById('nex-bloco-forca');
+  var blocoCardio = document.getElementById('nex-bloco-cardio');
+  if (!blocoForca || !blocoCardio) return;
+  var isForca  = tipo === 'Forca' || tipo === 'Mobilidade';
+  var isCardio = tipo === 'Cardio' || tipo === 'Alongamento';
+  blocoForca.style.display  = isForca  ? 'block' : 'none';
+  blocoCardio.style.display = isCardio ? 'block' : 'none';
+}
+
 async function salvarNovoExercicio() {
   var nome = document.getElementById('nex-nome').value.trim();
   if (!nome) { toast('Digite o nome do exercicio!'); return; }
-  var data = {
-    nome: nome,
-    musculo: document.getElementById('nex-musculo').value || null,
-    tipo: document.getElementById('nex-tipo').value || null,
-    local: document.getElementById('nex-local').value || null,
-    equipamento: document.getElementById('nex-equip').value || null,
-    youtube_url: document.getElementById('nex-yt').value.trim() || null,
-    instrucoes: document.getElementById('nex-inst').value.trim() || null,
-    minutos: parseInt(document.getElementById('nex-min').value) || null
-  };
-  var err = await criarExercicio(data);
-  if (err) { toast('Erro ao salvar exercicio!'); console.error(err); return; }
-  closeModal('mod-novo-ex');
-  toast('Exercicio criado!');
-  loadExLista();
+
+  var btn = document.getElementById('nex-btn-salvar');
+  if (btn) { btn.disabled = true; btn.textContent = 'Salvando...'; }
+
+  try {
+    var tipo = document.getElementById('nex-tipo').value || null;
+    var isForca  = tipo === 'Forca' || tipo === 'Mobilidade';
+    var isCardio = tipo === 'Cardio' || tipo === 'Alongamento';
+
+    var data = {
+      nome:         nome,
+      musculo:      document.getElementById('nex-musculo').value || null,
+      tipo:         tipo,
+      local:        document.getElementById('nex-local').value || null,
+      equipamento:  document.getElementById('nex-equip').value || null,
+      youtube_url:  document.getElementById('nex-yt').value.trim() || null,
+      instrucoes:   document.getElementById('nex-inst').value.trim() || null,
+      series:       isForca  ? (parseInt(document.getElementById('nex-series').value) || null)       : null,
+      repeticoes:   isForca  ? (document.getElementById('nex-reps').value.trim() || null)            : null,
+      descanso_seg: isForca  ? (parseInt(document.getElementById('nex-desc').value) || null)         : null,
+      minutos:      isCardio ? (parseInt(document.getElementById('nex-min').value) || null)          : null
+    };
+
+    var res = await sb.from('exercicios').insert(data);
+    if (res.error) {
+      var msg = res.error.message || JSON.stringify(res.error);
+      console.error('criarExercicio RLS/schema error:', res.error);
+      toast('Erro: ' + msg);
+      return;
+    }
+
+    invalidateCache('exercicios');
+    closeModal('mod-novo-ex');
+    toast('Exercicio criado!');
+    loadExLista();
+
+  } catch(err) {
+    console.error('salvarNovoExercicio excecao:', err);
+    toast('Erro inesperado: ' + (err.message || String(err)));
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Salvar'; }
+  }
 }
 
 // ── TREINOS TEMPLATES ─────────────────────────────
