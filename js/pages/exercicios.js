@@ -138,10 +138,12 @@ function exSetFiltro(campo, valor) {
   loadExLista();
 }
 
-// Card 2 colunas: info (esq) + vídeo inline (dir)
+// Card 2 colunas: info (esq) + thumbnail clicável (dir)
 function exCardBiblioteca(ex) {
-  var embed = ytEmbed(ex.youtube_url);
+  var vid = ytId(ex.youtube_url);
+  var thumb = vid ? 'https://img.youtube.com/vi/' + vid + '/mqdefault.jpg' : null;
   var isForca = ex.tipo === 'Forca' || ex.tipo === 'Mobilidade';
+  var contId = 'ytc-' + ex.id;
 
   // Linha de prescrição padrão
   var presc = '';
@@ -152,6 +154,22 @@ function exCardBiblioteca(ex) {
     presc = '&#x23F1; ' + ex.minutos + ' min';
   }
 
+  // Coluna direita: thumbnail + play, ou placeholder
+  var videoCol =
+    '<div style="width:38%;flex-shrink:0;">' +
+      '<div id="' + contId + '" style="border-radius:var(--rs);overflow:hidden;aspect-ratio:9/16;background:#111;position:relative;">' +
+        (thumb
+          ? '<img src="' + thumb + '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">' +
+            '<div onclick="ytPlay(\'' + contId + '\',\'' + vid + '\')" ' +
+              'style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;cursor:pointer;">' +
+              '<div style="width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;">' +
+                '<svg viewBox="0 0 24 24" width="16" height="16" fill="white"><path d="M8 5v14l11-7z"/></svg>' +
+              '</div>' +
+            '</div>'
+          : '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:28px;">&#x1F3AC;</div>') +
+      '</div>' +
+    '</div>';
+
   return (
     '<div class="card mb" style="padding:14px;">' +
       '<div style="display:flex;gap:12px;align-items:stretch;">' +
@@ -160,9 +178,9 @@ function exCardBiblioteca(ex) {
         '<div style="flex:3;min-width:0;display:flex;flex-direction:column;">' +
           '<div style="font-size:14px;font-weight:700;line-height:1.3;margin-bottom:6px;">' + ex.nome + '</div>' +
           '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:7px;">' +
-            (ex.musculo    ? '<span class="badge badge-green">' + ex.musculo + '</span>' : '') +
-            (ex.tipo       ? '<span class="badge badge-muted">' + ex.tipo + '</span>' : '') +
-            (ex.local      ? '<span class="badge badge-muted">' + ex.local + '</span>' : '') +
+            (ex.musculo     ? '<span class="badge badge-green">' + ex.musculo + '</span>' : '') +
+            (ex.tipo        ? '<span class="badge badge-muted">' + ex.tipo + '</span>' : '') +
+            (ex.local       ? '<span class="badge badge-muted">' + ex.local + '</span>' : '') +
             (ex.equipamento ? '<span class="badge badge-blue">' + ex.equipamento + '</span>' : '') +
           '</div>' +
           (presc ? '<div style="font-size:12px;font-weight:700;color:var(--green-pale);margin-bottom:7px;">' + presc + '</div>' : '') +
@@ -172,18 +190,25 @@ function exCardBiblioteca(ex) {
           '<button class="btn btn-ghost btn-xs" onclick="openEditarExercicio(\'' + ex.id + '\')">&#x270F; Editar</button>' +
         '</div>' +
 
-        // ── COLUNA DIREITA (vídeo inline com zoom/crop para sumir barras pretas) ──
-        '<div style="width:38%;flex-shrink:0;">' +
-          '<div style="border-radius:var(--rs);overflow:hidden;aspect-ratio:9/16;background:#000;position:relative;">' +
-            (embed
-              ? '<iframe src="' + embed + '" frameborder="0" allow="autoplay;encrypted-media" allowfullscreen loading="lazy" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(1.35);width:100%;height:100%;border:0;pointer-events:none;"></iframe>'
-              : '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:36px;">&#x1F3AC;</div>') +
-          '</div>' +
-        '</div>' +
+        videoCol +
 
       '</div>' +
     '</div>'
   );
+}
+
+// Substitui thumbnail pelo iframe ao clicar no play
+function ytPlay(contId, vid) {
+  var cont = document.getElementById(contId);
+  if (!cont) return;
+  var src = 'https://www.youtube.com/embed/' + vid +
+    '?autoplay=1&mute=1&loop=1&playlist=' + vid +
+    '&controls=0&rel=0&modestbranding=1&playsinline=1' +
+    '&iv_load_policy=3&fs=0&disablekb=1';
+  cont.innerHTML =
+    '<iframe src="' + src + '" frameborder="0" allow="autoplay;encrypted-media" ' +
+    'style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(1.35);' +
+    'width:100%;height:100%;border:0;pointer-events:none;"></iframe>';
 }
 
 // ── FORMULÁRIO DE EXERCÍCIO (criar e editar) ──────
