@@ -1,5 +1,16 @@
 // FISCHER METHOD -- app.js
 
+// ── TEMA ──────────────────────────────────────────
+// Aplicado o mais cedo possivel para evitar flash de tema errado
+function applyTema(tema) {
+  if (tema === 'claro') {
+    document.body.classList.add('tema-claro');
+  } else {
+    document.body.classList.remove('tema-claro');
+  }
+}
+applyTema(localStorage.getItem('fm_tema') || 'escuro');
+
 // Global safety net: prevent unhandled promise rejections from leaving spinners on screen
 window.addEventListener('unhandledrejection', function(e) {
   console.error('Unhandled rejection:', e.reason);
