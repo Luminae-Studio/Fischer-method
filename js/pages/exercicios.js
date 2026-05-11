@@ -68,13 +68,14 @@ function ytThumb(url) {
   return id ? 'https://img.youtube.com/vi/' + id + '/mqdefault.jpg' : null;
 }
 
-// Embed inline: autoplay, mudo, loop, sem controles, sem branding
+// Embed inline: autoplay, mudo, loop, sem controles, sem branding, sem anotações
 function ytEmbed(url) {
   var id = ytId(url);
   if (!id) return null;
   return 'https://www.youtube.com/embed/' + id +
     '?autoplay=1&mute=1&loop=1&playlist=' + id +
-    '&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1';
+    '&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1' +
+    '&iv_load_policy=3&fs=0&disablekb=1';
 }
 
 // ── BIBLIOTECA DE EXERCICIOS ──────────────────────
@@ -171,11 +172,11 @@ function exCardBiblioteca(ex) {
           '<button class="btn btn-ghost btn-xs" onclick="openEditarExercicio(\'' + ex.id + '\')">&#x270F; Editar</button>' +
         '</div>' +
 
-        // ── COLUNA DIREITA (vídeo inline) ──────────
+        // ── COLUNA DIREITA (vídeo inline com zoom/crop para sumir barras pretas) ──
         '<div style="width:38%;flex-shrink:0;">' +
-          '<div style="border-radius:var(--rs);overflow:hidden;aspect-ratio:9/16;background:var(--surf-high);position:relative;">' +
+          '<div style="border-radius:var(--rs);overflow:hidden;aspect-ratio:9/16;background:#000;position:relative;">' +
             (embed
-              ? '<iframe src="' + embed + '" frameborder="0" allow="autoplay;encrypted-media" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:0;" loading="lazy"></iframe>'
+              ? '<iframe src="' + embed + '" frameborder="0" allow="autoplay;encrypted-media" allowfullscreen loading="lazy" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(1.35);width:100%;height:100%;border:0;pointer-events:none;"></iframe>'
               : '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:36px;">&#x1F3AC;</div>') +
           '</div>' +
         '</div>' +
