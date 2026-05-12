@@ -2,6 +2,7 @@
 var _dashLoading = false;
 
 function renderDash() {
+  _dashLoading = false; // reseta flag para evitar spinner eterno ao re-entrar
   var el = document.getElementById('pg-dash');
   if (!el) return;
   var hour = new Date().getHours();
@@ -36,10 +37,12 @@ async function loadDashData() {
 
   try {
     var alunos = await getTodosAlunos();
+    if (!el || !el.isConnected) return;
     var total = alunos.length;
     var today = new Date().toISOString().split('T')[0];
 
     var resExec = await sb.from('execucoes').select('*').eq('data', today).eq('concluido', true);
+    if (!el.isConnected) return;
     var treinaram = resExec.data || [];
 
     var d7 = new Date();
@@ -49,6 +52,7 @@ async function loadDashData() {
       .gte('created_at', d7.toISOString())
       .order('created_at', { ascending: false })
       .limit(5);
+    if (!el.isConnected) return;
     var feedbacks = resFeed.data || [];
 
     var now = new Date();

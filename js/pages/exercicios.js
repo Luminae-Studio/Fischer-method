@@ -13,6 +13,7 @@ var DIAS_SEMANA = ['Segunda','Terca','Quarta','Quinta','Sexta','Sabado','Domingo
 
 // ── ENTRY ─────────────────────────────────────────
 function renderExercicios() {
+  _exLoading = false; // reseta flag para evitar spinner eterno ao re-entrar
   var el = document.getElementById('pg-exercicios');
   if (!el) return;
   exTreinoDetalheId = null;
@@ -386,6 +387,7 @@ async function loadTreinoLista() {
         '<p>Nenhum treino template ainda.<br><span style="font-size:12px;color:var(--muted);">Crie templates que podem ser<br>atribuidos a qualquer aluno.</span></p></div>';
       return;
     }
+    if (!el.isConnected) return;
     var html = '';
     treinos.forEach(function(t) {
       html +=
@@ -401,6 +403,12 @@ async function loadTreinoLista() {
         '</div>';
     });
     el.innerHTML = html;
+  } catch(err) {
+    console.error('loadTreinoLista:', err);
+    var elErr = document.getElementById('ex-content');
+    if (elErr && elErr.isConnected) {
+      elErr.innerHTML = '<div class="empty"><div class="empty-ico">&#x26A0;</div><p>Erro ao carregar.<br><button class="btn btn-ghost btn-sm" onclick="loadTreinoLista()">Tentar novamente</button></p></div>';
+    }
   } finally {
     _exLoading = false;
   }
@@ -417,21 +425,28 @@ async function loadTreinoDetalhe(treinoId) {
   var el = document.getElementById('ex-content');
   if (!el) return;
   el.innerHTML = '<div style="text-align:center;padding:30px 0;"><div class="spinner" style="margin:0 auto;"></div></div>';
+  try {
+    var res = await sb.from('treino_exercicios').select('*, exercicios(*)').eq('treino_id', treinoId).order('ordem');
+    if (!el.isConnected) return;
+    var itens = res.data || [];
 
-  var res = await sb.from('treino_exercicios').select('*, exercicios(*)').eq('treino_id', treinoId).order('ordem');
-  var itens = res.data || [];
+    var html =
+      '<button class="btn btn-ghost btn-sm" style="margin-bottom:14px;" onclick="voltarTreinoLista()">&#x2190; Treinos</button>' +
+      '<div style="font-family:var(--font-display);font-size:16px;font-weight:700;margin-bottom:14px;">' + exTreinoDetalheNome + '</div>';
 
-  var html =
-    '<button class="btn btn-ghost btn-sm" style="margin-bottom:14px;" onclick="voltarTreinoLista()">&#x2190; Treinos</button>' +
-    '<div style="font-family:var(--font-display);font-size:16px;font-weight:700;margin-bottom:14px;">' + exTreinoDetalheNome + '</div>';
+    if (!itens.length) {
+      html += '<div class="empty" style="padding:30px 0;"><div class="empty-ico">&#x2795;</div><p>Nenhum exercicio neste treino.<br><span style="font-size:12px;color:var(--muted);">Use + Exercicio para adicionar.</span></p></div>';
+    } else {
+      itens.forEach(function(item) { html += exCardTreino(item); });
+    }
 
-  if (!itens.length) {
-    html += '<div class="empty" style="padding:30px 0;"><div class="empty-ico">&#x2795;</div><p>Nenhum exercicio neste treino.<br><span style="font-size:12px;color:var(--muted);">Use + Exercicio para adicionar.</span></p></div>';
-  } else {
-    itens.forEach(function(item) { html += exCardTreino(item); });
+    el.innerHTML = html;
+  } catch(err) {
+    console.error('loadTreinoDetalhe:', err);
+    if (el.isConnected) {
+      el.innerHTML = '<div class="empty"><div class="empty-ico">&#x26A0;</div><p>Erro ao carregar.<br><button class="btn btn-ghost btn-sm" onclick="loadTreinoDetalhe(\'' + treinoId + '\')">Tentar novamente</button></p></div>';
+    }
   }
-
-  el.innerHTML = html;
 }
 
 // Card dentro de um treino — thumbnail estática (não inline iframe)

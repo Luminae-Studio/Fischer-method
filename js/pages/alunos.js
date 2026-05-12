@@ -3,6 +3,7 @@ var alunosTab = 'alunos';
 var _alunosLoading = false;
 
 function renderAlunos() {
+  _alunosLoading = false; // reseta flag para evitar spinner eterno ao re-entrar
   var el = document.getElementById('pg-alunos');
   if (!el) return;
 
@@ -39,6 +40,12 @@ async function loadAlunosTab() {
     } else {
       await loadListaConvites();
     }
+  } catch(err) {
+    console.error('loadAlunosTab:', err);
+    var elErr = document.getElementById('alunos-content');
+    if (elErr && elErr.isConnected) {
+      elErr.innerHTML = '<div class="empty"><div class="empty-ico">&#x26A0;</div><p>Erro ao carregar.<br><button class="btn btn-ghost btn-sm" onclick="loadAlunosTab()">Tentar novamente</button></p></div>';
+    }
   } finally {
     _alunosLoading = false;
   }
@@ -46,75 +53,89 @@ async function loadAlunosTab() {
 
 async function loadListaAlunos() {
   var el = document.getElementById('alunos-content');
-  var alunos = await getTodosAlunos();
+  if (!el) return;
+  try {
+    var alunos = await getTodosAlunos();
+    if (!el.isConnected) return;
 
-  if (!alunos.length) {
-    el.innerHTML =
-      '<div class="empty">' +
-        '<div class="empty-ico">&#x1F465;</div>' +
-        '<p>Nenhum aluno ainda.<br>Gere um convite para comecar!</p>' +
-        '<button class="btn btn-primary" style="margin-top:16px;" onclick="openGerarConvite()">Gerar convite</button>' +
-      '</div>';
-    return;
+    if (!alunos.length) {
+      el.innerHTML =
+        '<div class="empty">' +
+          '<div class="empty-ico">&#x1F465;</div>' +
+          '<p>Nenhum aluno ainda.<br>Gere um convite para comecar!</p>' +
+          '<button class="btn btn-primary" style="margin-top:16px;" onclick="openGerarConvite()">Gerar convite</button>' +
+        '</div>';
+      return;
+    }
+
+    var html = '';
+    alunos.forEach(function(a) {
+      html +=
+        '<div class="aluno-card" onclick="abrirAlunoDetalhe(\'' + a.id + '\')">' +
+          avatarHTML(a, 'av-md') +
+          '<div class="aluno-card-info">' +
+            '<div class="aluno-card-name">' + (a.name || 'Sem nome') + '</div>' +
+            '<div class="aluno-card-meta">' + (a.email || '') + '</div>' +
+            (a.objetivo ? '<div style="font-size:11px;color:var(--green-pale);margin-top:2px;">&#x25CF; ' + a.objetivo + '</div>' : '') +
+          '</div>' +
+          '<div style="font-size:20px;color:var(--muted);">&#x203A;</div>' +
+        '</div>';
+    });
+    el.innerHTML = html;
+  } catch(err) {
+    console.error('loadListaAlunos:', err);
+    throw err; // propaga para loadAlunosTab tratar
   }
-
-  var html = '';
-  alunos.forEach(function(a) {
-    html +=
-      '<div class="aluno-card" onclick="abrirAlunoDetalhe(\'' + a.id + '\')">' +
-        avatarHTML(a, 'av-md') +
-        '<div class="aluno-card-info">' +
-          '<div class="aluno-card-name">' + (a.name || 'Sem nome') + '</div>' +
-          '<div class="aluno-card-meta">' + (a.email || '') + '</div>' +
-          (a.objetivo ? '<div style="font-size:11px;color:var(--green-pale);margin-top:2px;">&#x25CF; ' + a.objetivo + '</div>' : '') +
-        '</div>' +
-        '<div style="font-size:20px;color:var(--muted);">&#x203A;</div>' +
-      '</div>';
-  });
-  el.innerHTML = html;
 }
 
 async function loadListaConvites() {
   var el = document.getElementById('alunos-content');
-  var convites = await getConvites();
+  if (!el) return;
+  try {
+    var convites = await getConvites();
+    if (!el.isConnected) return;
 
-  if (!convites.length) {
-    el.innerHTML =
-      '<div class="empty">' +
-        '<div class="empty-ico">&#x1F511;</div>' +
-        '<p>Nenhum convite gerado ainda.</p>' +
-        '<button class="btn btn-primary" style="margin-top:16px;" onclick="openGerarConvite()">Gerar convite</button>' +
-      '</div>';
-    return;
+    if (!convites.length) {
+      el.innerHTML =
+        '<div class="empty">' +
+          '<div class="empty-ico">&#x1F511;</div>' +
+          '<p>Nenhum convite gerado ainda.</p>' +
+          '<button class="btn btn-primary" style="margin-top:16px;" onclick="openGerarConvite()">Gerar convite</button>' +
+        '</div>';
+      return;
+    }
+
+    var html = '';
+    convites.forEach(function(c) {
+      var usado = c.used;
+      var data = c.created_at ? new Date(c.created_at).toLocaleDateString('pt-BR') : '';
+      var nomeAluno = c.aluno_nome || 'Aluno';
+
+      html +=
+        '<div class="card card-sm mb" style="display:flex;align-items:center;gap:12px;">' +
+          '<div style="width:40px;height:40px;border-radius:50%;background:' + (usado ? 'var(--green)' : 'var(--surf-high)') + ';border:1px solid ' + (usado ? 'var(--green)' : 'var(--outline)') + ';display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">' +
+            (usado ? '&#x2713;' : '&#x1F511;') +
+          '</div>' +
+          '<div style="flex:1;min-width:0;">' +
+            '<div style="font-size:14px;font-weight:700;color:var(--white);margin-bottom:2px;">' + nomeAluno + '</div>' +
+            '<div style="font-family:var(--font-display);font-size:13px;font-weight:800;color:var(--green-pale);letter-spacing:.08em;">' + c.code + '</div>' +
+            '<div style="font-size:10px;color:var(--muted);margin-top:2px;">Gerado em ' + data + '</div>' +
+          '</div>' +
+          '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">' +
+            (usado
+              ? '<span class="badge badge-green">&#x2713; Entrou</span>'
+              : '<span class="badge badge-muted">Aguardando</span>') +
+            (!usado
+              ? '<button class="btn btn-ghost btn-xs" onclick="copiarCodigo(\'' + c.code + '\')">Copiar</button>'
+              : '') +
+          '</div>' +
+        '</div>';
+    });
+    el.innerHTML = html;
+  } catch(err) {
+    console.error('loadListaConvites:', err);
+    throw err; // propaga para loadAlunosTab tratar
   }
-
-  var html = '';
-  convites.forEach(function(c) {
-    var usado = c.used;
-    var data = c.created_at ? new Date(c.created_at).toLocaleDateString('pt-BR') : '';
-    var nomeAluno = c.aluno_nome || 'Aluno';
-
-    html +=
-      '<div class="card card-sm mb" style="display:flex;align-items:center;gap:12px;">' +
-        '<div style="width:40px;height:40px;border-radius:50%;background:' + (usado ? 'var(--green)' : 'var(--surf-high)') + ';border:1px solid ' + (usado ? 'var(--green)' : 'var(--outline)') + ';display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">' +
-          (usado ? '&#x2713;' : '&#x1F511;') +
-        '</div>' +
-        '<div style="flex:1;min-width:0;">' +
-          '<div style="font-size:14px;font-weight:700;color:var(--white);margin-bottom:2px;">' + nomeAluno + '</div>' +
-          '<div style="font-family:var(--font-display);font-size:13px;font-weight:800;color:var(--green-pale);letter-spacing:.08em;">' + c.code + '</div>' +
-          '<div style="font-size:10px;color:var(--muted);margin-top:2px;">Gerado em ' + data + '</div>' +
-        '</div>' +
-        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">' +
-          (usado
-            ? '<span class="badge badge-green">&#x2713; Entrou</span>'
-            : '<span class="badge badge-muted">Aguardando</span>') +
-          (!usado
-            ? '<button class="btn btn-ghost btn-xs" onclick="copiarCodigo(\'' + c.code + '\')">Copiar</button>'
-            : '') +
-        '</div>' +
-      '</div>';
-  });
-  el.innerHTML = html;
 }
 
 function copiarCodigo(code) {

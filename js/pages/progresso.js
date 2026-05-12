@@ -2,6 +2,7 @@
 var _progressoLoading = false;
 
 function renderProgresso() {
+  _progressoLoading = false; // reseta flag para evitar spinner eterno ao re-entrar
   var el = document.getElementById('pg-progresso');
   if (!el) return;
 

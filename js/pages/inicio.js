@@ -7,6 +7,7 @@ var _inicioCalMes    = new Date().getMonth();   // 0-11
 
 // ── ENTRY ─────────────────────────────────────────
 function renderInicio() {
+  _inicioLoading = false; // reseta flag para evitar spinner eterno ao re-entrar
   var el = document.getElementById('pg-inicio');
   if (!el) return;
 
