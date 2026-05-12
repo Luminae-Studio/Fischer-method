@@ -1,19 +1,24 @@
-// FISCHER METHOD -- inicio.js
-var _inicioLoading = false;
+// FISCHER METHOD -- inicio.js  (área do aluno)
+var _inicioLoading   = false;
+var _inicioExec      = [];          // cache para o calendário
+var _inicioCalAberto = false;
+var _inicioCalAno    = new Date().getFullYear();
+var _inicioCalMes    = new Date().getMonth();   // 0-11
 
+// ── ENTRY ─────────────────────────────────────────
 function renderInicio() {
   var el = document.getElementById('pg-inicio');
   if (!el) return;
 
-  var hour = new Date().getHours();
-  var greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
+  var h    = new Date().getHours();
+  var sau  = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
   var nome = currentProfile ? currentProfile.name.split(' ')[0] : '';
 
   el.innerHTML =
     '<div class="top-bar">' +
       '<div>' +
-        '<div style="font-size:12px;color:var(--muted);">' + greeting + ', <span style="color:var(--green-pale);font-weight:600;">' + nome + '</span></div>' +
-        '<div style="font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:-0.02em;">Inicio</div>' +
+        '<div style="font-size:12px;color:var(--muted);">' + sau + ', <span style="color:var(--green-pale);font-weight:600;">' + nome + '</span></div>' +
+        '<div style="font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:-.02em;">Inicio</div>' +
       '</div>' +
       avatarHTML(currentProfile, 'av-sm') +
     '</div>' +
@@ -21,123 +26,25 @@ function renderInicio() {
       '<div style="text-align:center;padding:40px 0;"><div class="spinner" style="margin:0 auto;"></div></div>' +
     '</div>';
 
+  _inicioCalAberto = false;
   loadInicioData();
 }
 
+// ── CARGA DE DADOS ────────────────────────────────
 async function loadInicioData() {
   if (_inicioLoading) return;
   _inicioLoading = true;
   try {
-    var uid = currentUser.id;
-
-    var treinos = await getTreinosAluno(uid);
     var resEx = await sb.from('execucoes')
       .select('data')
-      .eq('aluno_id', uid)
+      .eq('aluno_id', currentUser.id)
       .eq('concluido', true)
       .order('data', { ascending: false });
-    var execucoes = resEx.data || [];
+    _inicioExec = resEx.data || [];
 
     var el = document.getElementById('inicio-content');
     if (!el) return;
-
-    // Treino do dia
-    var now = new Date();
-    var days = ['Domingo','Segunda','Terca','Quarta','Quinta','Sexta','Sabado'];
-    var months = ['Janeiro','Fevereiro','Marco','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-    var todayName = days[now.getDay()];
-    var treinoHoje = treinos.filter(function(t) {
-      return t.dia_semana === todayName || t.dia_semana === 'Qualquer dia';
-    });
-
-    // Stats
-    var streak = calcStreak(execucoes);
-    var ultimaData = execucoes[0] ? execucoes[0].data : null;
-
-    // Status dinamico
-    var statusDiff = ultimaData
-      ? Math.floor((new Date() - new Date(ultimaData + 'T12:00:00')) / 86400000)
-      : 999;
-    var status = statusDiff <= 2 ? 'ativo' : statusDiff === 3 ? 'pausa' : 'inativo';
-    var statusMap = {
-      ativo:   { label: 'Ativo',    color: 'var(--green-pale)', bg: 'rgba(45,106,45,0.15)' },
-      pausa:   { label: 'Em pausa', color: 'var(--gold)',       bg: 'rgba(201,168,76,0.15)' },
-      inativo: { label: 'Inativo',  color: 'var(--red)',        bg: 'rgba(224,85,85,0.15)' }
-    };
-    var si = statusMap[status];
-
-    var html = '';
-
-    // ── HERO ───────────────────────────────────────
-    html += '<div class="hero-banner" style="margin:0 0 16px;">';
-    html += '<div class="hero-banner-eyebrow">' + todayName + ' &middot; ' + now.getDate() + ' de ' + months[now.getMonth()] + '</div>';
-    html += '<div class="hero-banner-name">' + (currentProfile ? currentProfile.name.split(' ')[0] : '') + '</div>';
-    html += '<div style="display:flex;align-items:center;gap:8px;margin-top:10px;">';
-    html += '<span style="font-size:11px;font-weight:700;color:' + si.color + ';background:' + si.bg + ';border:1px solid ' + si.color + ';padding:3px 10px;border-radius:99px;">' + si.label + '</span>';
-    if (ultimaData) {
-      var diff0 = Math.floor((new Date() - new Date(ultimaData + 'T12:00:00')) / 86400000);
-      var diffLabel = diff0 === 0 ? 'Treinou hoje' : diff0 === 1 ? 'Treinou ontem' : 'Ha ' + diff0 + ' dias';
-      html += '<span style="font-size:11px;color:var(--muted);">' + diffLabel + '</span>';
-    }
-    html += '</div>';
-    html += '</div>';
-
-    // ── STATS ──────────────────────────────────────
-    html += '<div class="stats-row" style="padding:0;margin-bottom:16px;">';
-    html += mkIniStat(streak > 0 ? streak + ' &#x1F525;' : '0', 'Sequencia', streak > 0);
-    html += mkIniStat(String(execucoes.length), 'Sessoes', false);
-    html += mkIniStat(String(treinos.length), treinos.length === 1 ? 'Treino' : 'Treinos', false);
-    html += '</div>';
-
-    // ── TREINO DE HOJE ─────────────────────────────
-    html += '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">Treino de hoje</div>';
-
-    if (!treinoHoje.length) {
-      html += '<div class="card mb" style="text-align:center;padding:22px;">';
-      if (!treinos.length) {
-        html += '<div style="font-size:24px;margin-bottom:10px;">&#x1F4CB;</div>';
-        html += '<div style="font-size:13px;font-weight:600;margin-bottom:4px;">Sem treino configurado</div>';
-        html += '<div style="font-size:12px;color:var(--muted);">Aguarde o Matheus montar seu plano.</div>';
-      } else {
-        html += '<div style="font-size:28px;margin-bottom:10px;">&#x1F634;</div>';
-        html += '<div style="font-size:14px;font-weight:700;margin-bottom:4px;">Dia de descanso</div>';
-        html += '<div style="font-size:12px;color:var(--muted);">Recuperacao tambem e treino. &#x1F4AA;</div>';
-      }
-      html += '</div>';
-    } else {
-      treinoHoje.forEach(function(t) {
-        html +=
-          '<div class="card card-green mb" style="cursor:pointer;" onclick="abrirTreinoModal(\'' + t.id + '\')">' +
-            '<div style="display:flex;align-items:center;gap:14px;">' +
-              '<div style="width:48px;height:48px;border-radius:var(--rs);background:var(--green);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">&#x1F4AA;</div>' +
-              '<div style="flex:1;">' +
-                '<div style="font-family:var(--font-display);font-size:17px;font-weight:700;">' + t.nome + '</div>' +
-                '<div style="font-size:11px;color:var(--green-pale);margin-top:2px;">' + (t.dia_semana || 'Qualquer dia') + ' &middot; Toque para iniciar</div>' +
-              '</div>' +
-              '<div style="font-size:24px;color:var(--green-pale);">&#x25B6;</div>' +
-            '</div>' +
-          '</div>';
-      });
-    }
-
-    // ── OUTROS TREINOS (nao sao de hoje) ───────────
-    var restantes = treinos.filter(function(t) { return treinoHoje.indexOf(t) === -1; });
-    if (restantes.length) {
-      html += '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;margin-top:6px;">Outros treinos</div>';
-      restantes.forEach(function(t) {
-        html +=
-          '<div class="card mb" style="cursor:pointer;display:flex;align-items:center;gap:12px;" onclick="abrirTreinoModal(\'' + t.id + '\')">' +
-            '<div style="width:40px;height:40px;border-radius:var(--rs);background:var(--surf-high);border:1px solid var(--outline);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">&#x1F4AA;</div>' +
-            '<div style="flex:1;">' +
-              '<div style="font-size:14px;font-weight:600;">' + t.nome + '</div>' +
-              '<div style="font-size:11px;color:var(--muted);">' + (t.dia_semana || 'Qualquer dia') + '</div>' +
-            '</div>' +
-            '<div style="font-size:18px;color:var(--muted);">&#x203A;</div>' +
-          '</div>';
-      });
-    }
-
-    el.innerHTML = html;
+    el.innerHTML = _mkFreqBlock(_inicioExec) + _mkGridAbas();
 
   } catch(err) {
     console.error('loadInicioData:', err);
@@ -151,9 +58,181 @@ async function loadInicioData() {
   }
 }
 
-function mkIniStat(val, lbl, green) {
-  return '<div class="stat-box' + (green ? ' green' : '') + '">' +
-    '<div class="stat-val' + (green ? ' green' : '') + '">' + val + '</div>' +
-    '<div class="stat-lbl">' + lbl + '</div>' +
+// ── BLOCO DE FREQUÊNCIA (7 bolinhas) ─────────────
+function _mkFreqBlock(exec) {
+  var hoje   = new Date();
+  var diaSem = hoje.getDay();                        // 0 = Dom
+  var seg    = new Date(hoje);
+  seg.setDate(hoje.getDate() - ((diaSem + 6) % 7)); // recua até segunda
+
+  var datas  = new Set(exec.map(function(e) { return e.data; }));
+  var LABELS = ['S','T','Q','Q','S','S','D'];
+  var dots   = '';
+
+  for (var i = 0; i < 7; i++) {
+    var d = new Date(seg);
+    d.setDate(seg.getDate() + i);
+    var iso     = _inicioIsoDate(d);
+    var treinou = datas.has(iso);
+    var isHoje  = d.toDateString() === hoje.toDateString();
+
+    dots +=
+      '<div style="display:flex;flex-direction:column;align-items:center;gap:5px;">' +
+        '<div style="width:34px;height:34px;border-radius:50%;' +
+          (treinou
+            ? 'background:var(--green);border:2px solid var(--green);'
+            : 'background:transparent;border:2px solid ' +
+              (isHoje ? 'var(--green-border)' : 'var(--outline)') + ';') +
+          'display:flex;align-items:center;justify-content:center;">' +
+          (treinou
+            ? '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+            : (isHoje ? '<div style="width:6px;height:6px;border-radius:50%;background:var(--green-pale);"></div>' : '')) +
+        '</div>' +
+        '<div style="font-size:9px;font-weight:700;color:' +
+          (isHoje ? 'var(--green-pale)' : 'var(--faint)') +
+          ';letter-spacing:.04em;">' + LABELS[i] + '</div>' +
+      '</div>';
+  }
+
+  return (
+    '<div id="freq-block" style="background:var(--surf-mid);border:1px solid var(--outline);' +
+    'border-radius:var(--r);padding:16px;margin-bottom:16px;cursor:pointer;" onclick="inicioToggleCal()">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">' +
+        '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Frequencia esta semana</div>' +
+        '<span id="freq-arrow" style="font-size:16px;color:var(--faint);">&#x25BE;</span>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:space-around;">' + dots + '</div>' +
+      '<div id="cal-wrap"></div>' +
+    '</div>'
+  );
+}
+
+// ── TOGGLE CALENDÁRIO ─────────────────────────────
+function inicioToggleCal() {
+  var wrap  = document.getElementById('cal-wrap');
+  var arrow = document.getElementById('freq-arrow');
+  if (!wrap) return;
+
+  _inicioCalAberto = !_inicioCalAberto;
+
+  if (_inicioCalAberto) {
+    _inicioCalAno = new Date().getFullYear();
+    _inicioCalMes = new Date().getMonth();
+    wrap.style.cssText = 'margin-top:16px;padding-top:16px;border-top:1px solid var(--outline);';
+    wrap.innerHTML = _mkCalMes(_inicioExec, _inicioCalAno, _inicioCalMes);
+    if (arrow) arrow.innerHTML = '&#x25B4;';
+  } else {
+    wrap.style.cssText = '';
+    wrap.innerHTML = '';
+    if (arrow) arrow.innerHTML = '&#x25BE;';
+  }
+}
+
+function inicioNavCal(delta) {
+  _inicioCalMes += delta;
+  if (_inicioCalMes > 11) { _inicioCalMes = 0; _inicioCalAno++; }
+  if (_inicioCalMes < 0)  { _inicioCalMes = 11; _inicioCalAno--; }
+  var wrap = document.getElementById('cal-wrap');
+  if (wrap) wrap.innerHTML = _mkCalMes(_inicioExec, _inicioCalAno, _inicioCalMes);
+}
+
+// ── CALENDÁRIO MENSAL ─────────────────────────────
+function _mkCalMes(exec, ano, mes) {
+  var MESES = ['Janeiro','Fevereiro','Marco','Abril','Maio','Junho',
+               'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  var LABS  = ['Seg','Ter','Qua','Qui','Sex','Sab','Dom'];
+
+  var hoje    = new Date();
+  var hojeIso = _inicioIsoDate(hoje);
+  var datas   = new Set(exec.map(function(e) { return e.data; }));
+  var diasMes = new Date(ano, mes + 1, 0).getDate();
+  var primDia = (new Date(ano, mes, 1).getDay() + 6) % 7; // 0 = Seg
+  var prefix  = ano + '-' + String(mes + 1).padStart(2, '0') + '-';
+  var ehAtual = (ano === hoje.getFullYear() && mes === hoje.getMonth());
+
+  var treinosMes = exec.filter(function(e) {
+    return e.data && e.data.startsWith(ano + '-' + String(mes + 1).padStart(2, '0'));
+  }).length;
+
+  var h = '';
+
+  // Navegação
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;" onclick="event.stopPropagation()">';
+  h += '<button onclick="inicioNavCal(-1);event.stopPropagation();" style="width:28px;height:28px;border-radius:50%;background:var(--surf-high);border:1px solid var(--outline);font-size:16px;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;">&#x2039;</button>';
+  h += '<div style="font-size:13px;font-weight:700;">' + MESES[mes] + ' ' + ano + '</div>';
+  h += ehAtual
+    ? '<div style="width:28px;"></div>'
+    : '<button onclick="inicioNavCal(1);event.stopPropagation();" style="width:28px;height:28px;border-radius:50%;background:var(--surf-high);border:1px solid var(--outline);font-size:16px;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;">&#x203A;</button>';
+  h += '</div>';
+
+  // Labels dias da semana
+  h += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:6px;">';
+  LABS.forEach(function(l) {
+    h += '<div style="text-align:center;font-size:9px;font-weight:700;color:var(--faint);padding:2px 0;">' + l + '</div>';
+  });
+  h += '</div>';
+
+  // Grid de dias
+  h += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;" onclick="event.stopPropagation()">';
+  for (var i = 0; i < primDia; i++) h += '<div></div>';
+  for (var d = 1; d <= diasMes; d++) {
+    var iso     = prefix + String(d).padStart(2, '0');
+    var treinou = datas.has(iso);
+    var isHoje  = iso === hojeIso;
+    var futuro  = iso > hojeIso;
+    h +=
+      '<div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:12px;' +
+        (treinou
+          ? 'background:var(--green);color:#fff;font-weight:700;'
+          : isHoje
+            ? 'border:1.5px solid var(--green-pale);color:var(--green-pale);font-weight:700;'
+            : futuro ? 'color:var(--faint);' : 'color:var(--muted);') +
+      '">' + d + '</div>';
+  }
+  h += '</div>';
+
+  // Rodapé
+  h +=
+    '<div style="margin-top:12px;text-align:center;font-size:12px;color:var(--muted);">' +
+      'Treinou <strong style="color:var(--green-pale);">' + treinosMes + '</strong> ' +
+      (treinosMes === 1 ? 'dia' : 'dias') + ' em ' + MESES[mes] +
     '</div>';
+
+  return h;
+}
+
+// ── GRID 6 ABAS ───────────────────────────────────
+function _mkGridAbas() {
+  var abas = [
+    { ico: '&#x1F4AA;', label: 'Treinos',      fn: "go('treinos')"                },
+    { ico: '&#x2B50;',  label: 'Extras',        fn: "inicioAbaBreve('Extras')"     },
+    { ico: '&#x1F4CB;', label: 'Avaliacoes',    fn: "inicioAbaBreve('Avaliacoes')" },
+    { ico: '&#x1F4C8;', label: 'Meu Progresso', fn: "go('progresso')"              },
+    { ico: '&#x1F4B3;', label: 'Faturas',       fn: "inicioAbaBreve('Faturas')"    },
+    { ico: '&#x1F4C1;', label: 'Arquivos',      fn: "inicioAbaBreve('Arquivos')"   },
+  ];
+
+  var h = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">';
+  abas.forEach(function(a) {
+    h +=
+      '<div onclick="' + a.fn + '" ' +
+        'style="background:var(--surf-mid);border:1px solid var(--outline);border-radius:var(--r);' +
+        'padding:24px 12px;text-align:center;cursor:pointer;">' +
+        '<div style="font-size:34px;margin-bottom:10px;">' + a.ico + '</div>' +
+        '<div style="font-size:13px;font-weight:600;">' + a.label + '</div>' +
+      '</div>';
+  });
+  h += '</div>';
+  return h;
+}
+
+function inicioAbaBreve(nome) {
+  toast(nome + ' em breve! &#x1F680;');
+}
+
+// ── UTIL ──────────────────────────────────────────
+function _inicioIsoDate(d) {
+  return d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
 }

@@ -29,7 +29,8 @@ async function loadProgressoData() {
       .order('data', { ascending: false })
       .limit(60);
     var execucoes = resEx.data || [];
-    var medidas = await getMedidasAluno(uid);
+    var medidas   = await getMedidasAluno(uid);
+    var avaliacoes = await getAvaliacoesAluno(uid);
 
     var el = document.getElementById('progresso-content');
     if (!el) return;
@@ -63,30 +64,42 @@ async function loadProgressoData() {
     html += '<button class="btn btn-ghost btn-xs" onclick="openNovoPeso()">+ Peso</button>';
     html += '</div>';
 
-    if (!medidas.length) {
+    // Une medidas próprias + avaliações do personal que tenham peso
+    var avPeso = (avaliacoes || []).filter(function(a) { return a.peso; }).map(function(a) {
+      return { data: a.data, peso: a.peso, isAval: true };
+    });
+    var todasMedidas = medidas.map(function(m) {
+      return { data: m.data, peso: m.peso, isAval: false };
+    }).concat(avPeso).sort(function(a, b) { return a.data < b.data ? -1 : 1; });
+
+    if (!todasMedidas.length) {
       html += '<div style="text-align:center;padding:14px 0;font-size:12px;color:var(--muted);">Nenhum registro ainda.<br>Adicione seu peso para acompanhar a evolucao.</div>';
     } else {
-      var ordenadas = medidas.slice().reverse(); // cronologico
-      var vals = ordenadas.map(function(m) { return m.peso; });
-      var maxP = Math.max.apply(null, vals);
-      var minP = Math.min.apply(null, vals);
+      var vals   = todasMedidas.map(function(m) { return m.peso; });
+      var maxP   = Math.max.apply(null, vals);
+      var minP   = Math.min.apply(null, vals);
       var rangeP = maxP - minP || 1;
-      var ultimos = ordenadas.slice(-10);
+      var ultimos = todasMedidas.slice(-10);
 
       html += '<div class="chart-bars">';
       ultimos.forEach(function(m) {
         var barH = ultimos.length === 1 ? 60 : Math.round(((m.peso - minP) / rangeP) * 60 + 10);
-        var dt = new Date(m.data + 'T12:00:00').toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' });
+        var dt   = new Date(m.data + 'T12:00:00').toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' });
+        var barColor = m.isAval ? 'var(--gold)' : 'var(--green)';
         html += '<div class="chart-bar-wrap">';
-        html += '<div style="font-size:9px;color:var(--green-pale);font-weight:700;">' + m.peso + '</div>';
-        html += '<div class="chart-bar active" style="height:' + barH + 'px;"></div>';
-        html += '<div class="chart-bar-lbl">' + dt + '</div>';
+        html += '<div style="font-size:9px;color:' + (m.isAval ? 'var(--gold)' : 'var(--green-pale)') + ';font-weight:700;">' + m.peso + '</div>';
+        html += '<div class="chart-bar active" style="height:' + barH + 'px;background:' + barColor + ';"></div>';
+        html += '<div class="chart-bar-lbl">' + dt + (m.isAval ? ' &#x2605;' : '') + '</div>';
         html += '</div>';
       });
       html += '</div>';
 
+      if (avPeso.length) {
+        html += '<div style="font-size:10px;color:var(--faint);margin-top:8px;">&#x2605; Avaliacao do personal</div>';
+      }
+
       if (vals.length > 1) {
-        var diff = Math.round((vals[vals.length - 1] - vals[0]) * 10) / 10;
+        var diff   = Math.round((vals[vals.length - 1] - vals[0]) * 10) / 10;
         var dColor = diff < 0 ? 'var(--green-pale)' : diff > 0 ? 'var(--red)' : 'var(--muted)';
         html += '<div style="font-size:12px;color:' + dColor + ';font-weight:600;text-align:center;padding-top:10px;border-top:1px solid var(--outline);margin-top:10px;">' +
           (diff > 0 ? '+' : '') + diff + ' kg desde o inicio</div>';
