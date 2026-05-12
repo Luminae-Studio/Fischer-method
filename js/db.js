@@ -180,3 +180,43 @@ async function getConvites() {
   _cSet('convites', data);
   return data;
 }
+
+// ── PLANOS ────────────────────────────────────────
+async function getPlanoAluno(alunoId) {
+  var res = await sb.from('planos')
+    .select('*')
+    .eq('aluno_id', alunoId)
+    .eq('status', 'ativo')
+    .order('data_inicio', { ascending: false })
+    .limit(1);
+  return res.data && res.data[0] ? res.data[0] : null;
+}
+
+async function getHistoricoPlanos(alunoId) {
+  var res = await sb.from('planos')
+    .select('*')
+    .eq('aluno_id', alunoId)
+    .order('data_inicio', { ascending: false });
+  return res.data || [];
+}
+
+async function criarPlano(data) {
+  var res = await sb.from('planos').insert(data).select().single();
+  return res;
+}
+
+async function atualizarPlano(id, data) {
+  var res = await sb.from('planos').update(data).eq('id', id);
+  return res.error;
+}
+
+async function getPlanoAtual() {
+  var uid = currentUser.id;
+  var res = await sb.from('planos')
+    .select('*')
+    .eq('aluno_id', uid)
+    .eq('status', 'ativo')
+    .order('data_inicio', { ascending: false })
+    .limit(1);
+  return res.data && res.data[0] ? res.data[0] : null;
+}

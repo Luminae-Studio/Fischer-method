@@ -209,7 +209,7 @@ function _mkGridAbas() {
     { ico: '&#x2B50;',  label: 'Extras',        fn: "inicioAbaBreve('Extras')"     },
     { ico: '&#x1F4CB;', label: 'Avaliacoes',    fn: "inicioAbaBreve('Avaliacoes')" },
     { ico: '&#x1F4C8;', label: 'Meu Progresso', fn: "go('progresso')"              },
-    { ico: '&#x1F4B3;', label: 'Faturas',       fn: "inicioAbaBreve('Faturas')"    },
+    { ico: '&#x1F4B3;', label: 'Faturas',       fn: "go('faturas')"                },
     { ico: '&#x1F4C1;', label: 'Arquivos',      fn: "inicioAbaBreve('Arquivos')"   },
   ];
 

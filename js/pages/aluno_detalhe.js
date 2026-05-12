@@ -49,6 +49,7 @@ function renderAlunoDetalhe() {
       '<button class="tab' + (alunoDetTab==='treinos'?' on':'') + '" onclick="switchDetTab(\'treinos\',this)">Treinos</button>' +
       '<button class="tab' + (alunoDetTab==='medidas'?' on':'') + '" onclick="switchDetTab(\'medidas\',this)">Medidas</button>' +
       '<button class="tab' + (alunoDetTab==='progresso'?' on':'') + '" onclick="switchDetTab(\'progresso\',this)">Progresso</button>' +
+      '<button class="tab' + (alunoDetTab==='plano'?' on':'') + '" onclick="switchDetTab(\'plano\',this)">Plano</button>' +
       '<button class="tab' + (alunoDetTab==='notas'?' on':'') + '" onclick="switchDetTab(\'notas\',this)">Notas</button>' +
     '</div>' +
     '<div id="alu-det-content" style="padding:0 20px 20px;"></div>';
@@ -106,6 +107,7 @@ async function loadDetTab() {
     else if (tab === 'treinos') await loadDetTreinos(gen);
     else if (tab === 'medidas') await loadDetMedidas(gen);
     else if (tab === 'progresso') await loadDetProgresso(gen);
+    else if (tab === 'plano') await loadDetPlano(gen);
     else if (tab === 'notas') await loadDetNotas(gen);
   } catch(err) {
     if (_detGen !== gen) return; // stale — a newer tab took over
@@ -857,6 +859,159 @@ async function salvarEditAluno() {
   Object.assign(alunoAtual,data);
   closeModal('mod-edit-aluno');toast('Aluno atualizado!');
   renderAlunoDetalhe();loadDetTab();
+}
+
+// -- PLANO (personal gerencia) ---------------------
+async function loadDetPlano(gen) {
+  if (!alunoAtual) return;
+  var a = alunoAtual;
+
+  var plano = await getPlanoAluno(a.id);
+  if (_detGen !== gen || !alunoAtual) return;
+  var historico = await getHistoricoPlanos(a.id);
+  if (_detGen !== gen || !alunoAtual) return;
+
+  var el = document.getElementById('alu-det-content');
+  if (!el) return;
+
+  var html = '<button class="btn btn-primary btn-full mb" onclick="openNovoPlanoDet()">+ Novo plano</button>';
+
+  if (plano) {
+    html += _mkPlanoCard(plano);
+  } else {
+    html += '<div style="text-align:center;padding:20px 0;font-size:13px;color:var(--muted);">Nenhum plano ativo cadastrado.</div>';
+  }
+
+  // Histórico
+  var anteriores = historico.filter(function(p) { return !plano || p.id !== plano.id; });
+  if (anteriores.length) {
+    html += '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:16px 0 10px;">Historico (' + anteriores.length + ')</div>';
+    html += '<div class="card">';
+    anteriores.forEach(function(p) {
+      var mi = _planoModalidadeInfo(p.modalidade);
+      html +=
+        '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--outline);">' +
+          '<div style="flex:1;">' +
+            '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">' +
+              '<span style="font-size:11px;font-weight:700;color:' + mi.color + ';">' + mi.label + '</span>' +
+              '<span class="badge badge-muted">' + _planoPeriodoLabel(p.periodo) + '</span>' +
+              (p.valor ? '<span style="font-size:10px;color:var(--green-pale);">R$ ' + Number(p.valor).toFixed(2).replace('.', ',') + '</span>' : '') +
+            '</div>' +
+            '<div style="font-size:11px;color:var(--muted);">' + fmtDate(p.data_inicio) + ' → ' + fmtDate(p.data_vencimento) + '</div>' +
+          '</div>' +
+          _planoStatusBadge(p.status) +
+        '</div>';
+    });
+    html += '</div>';
+  }
+
+  el.innerHTML = html;
+}
+
+function openNovoPlanoDet() {
+  if (!alunoAtual) return;
+  var existing = document.getElementById('mod-novo-plano'); if (existing) existing.remove();
+  var m = document.createElement('div'); m.className = 'mov'; m.id = 'mod-novo-plano';
+
+  var hoje = todayISO();
+  var vencDefault = _calcVencimentoPlano('mensal', hoje);
+
+  var objOpts = [
+    { v: '',               l: '-- Selecione --'  },
+    { v: 'emagrecimento',  l: 'Emagrecimento'    },
+    { v: 'hipertrofia',    l: 'Hipertrofia'       },
+    { v: 'condicionamento',l: 'Condicionamento'   },
+    { v: 'saude_geral',    l: 'Saude geral'       }
+  ].map(function(o) {
+    return '<option value="' + o.v + '"' + (alunoAtual.objetivo_foco === o.v ? ' selected' : '') + '>' + o.l + '</option>';
+  }).join('');
+
+  m.innerHTML =
+    '<div class="mod"><div class="mod-handle"></div><h3>Novo plano</h3>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
+      '<div class="fg"><label>Modalidade</label>' +
+        '<select id="np-modal" onchange="npAutoVenc()">' +
+          '<option value="presencial"' + (alunoAtual.modalidade_plano==='presencial'?' selected':'') + '>Presencial</option>' +
+          '<option value="online"' + (alunoAtual.modalidade_plano==='online'?' selected':'') + '>Online</option>' +
+          '<option value="hibrido"' + (alunoAtual.modalidade_plano==='hibrido'?' selected':'') + '>Hibrido</option>' +
+        '</select>' +
+      '</div>' +
+      '<div class="fg"><label>Periodo</label>' +
+        '<select id="np-periodo" onchange="npAutoVenc()">' +
+          '<option value="mensal">Mensal</option>' +
+          '<option value="trimestral">Trimestral</option>' +
+          '<option value="semestral">Semestral</option>' +
+          '<option value="dupla">Dupla</option>' +
+        '</select>' +
+      '</div>' +
+    '</div>' +
+    '<div class="fg"><label>Valor (R$)</label><input type="number" id="np-valor" step="0.01" placeholder="150.00"></div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
+      '<div class="fg"><label>Data inicio</label><input type="date" id="np-inicio" value="' + hoje + '" onchange="npAutoVenc()"></div>' +
+      '<div class="fg"><label>Data vencimento</label><input type="date" id="np-venc" value="' + vencDefault + '"></div>' +
+    '</div>' +
+    '<div class="fg"><label>Objetivo foco</label><select id="np-obj-foco">' + objOpts + '</select></div>' +
+    '<div class="fg"><label>Observacoes</label><textarea id="np-obs" placeholder="Ex: Renovacao mensal, plano especial..."></textarea></div>' +
+    '<div class="mod-actions">' +
+      '<button class="btn btn-ghost" onclick="closeModal(\'mod-novo-plano\')">Cancelar</button>' +
+      '<button class="btn btn-primary" onclick="salvarNovoPlanoDet()">Salvar</button>' +
+    '</div></div>';
+  m.addEventListener('click', function(e) { if (e.target === m) m.classList.remove('on'); });
+  document.body.appendChild(m);
+  openModal('mod-novo-plano');
+}
+
+function npAutoVenc() {
+  var periodo = document.getElementById('np-periodo');
+  var inicio  = document.getElementById('np-inicio');
+  var vencEl  = document.getElementById('np-venc');
+  if (!periodo || !inicio || !vencEl || !inicio.value) return;
+  vencEl.value = _calcVencimentoPlano(periodo.value, inicio.value);
+}
+
+function _calcVencimentoPlano(periodo, inicioISO) {
+  var d = new Date(inicioISO + 'T12:00:00');
+  var dias = { mensal: 30, trimestral: 90, semestral: 180, dupla: 60 };
+  d.setDate(d.getDate() + (dias[periodo] || 30));
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+async function salvarNovoPlanoDet() {
+  if (!alunoAtual) return;
+  var modalidade = document.getElementById('np-modal').value;
+  var periodo    = document.getElementById('np-periodo').value;
+  var valor      = parseFloat(document.getElementById('np-valor').value) || null;
+  var inicio     = document.getElementById('np-inicio').value;
+  var venc       = document.getElementById('np-venc').value;
+  var objFoco    = document.getElementById('np-obj-foco').value || null;
+  var obs        = document.getElementById('np-obs').value.trim() || null;
+
+  if (!inicio || !venc) { toast('Preencha as datas!'); return; }
+
+  var res = await criarPlano({
+    aluno_id:        alunoAtual.id,
+    modalidade:      modalidade,
+    periodo:         periodo,
+    valor:           valor,
+    data_inicio:     inicio,
+    data_vencimento: venc,
+    status:          'ativo',
+    observacoes:     obs
+  });
+  if (res.error) { toast('Erro ao salvar plano!'); console.error(res.error); return; }
+
+  // Atualiza perfil do aluno
+  var perfilUpdate = { modalidade_plano: modalidade };
+  if (objFoco) perfilUpdate.objetivo_foco = objFoco;
+  await sb.from('profiles').update(perfilUpdate).eq('id', alunoAtual.id);
+  Object.assign(alunoAtual, perfilUpdate);
+  invalidateCache('alunos');
+
+  closeModal('mod-novo-plano');
+  toast('Plano criado!');
+  alunoDetTab = 'plano';
+  renderAlunoDetalhe();
+  setTimeout(loadDetTab, 100);
 }
 
 // -- HELPERS ---------------------------------------
