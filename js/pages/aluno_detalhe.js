@@ -51,6 +51,8 @@ function renderAlunoDetalhe() {
       '<button class="tab' + (alunoDetTab==='progresso'?' on':'') + '" onclick="switchDetTab(\'progresso\',this)">Progresso</button>' +
       '<button class="tab' + (alunoDetTab==='plano'?' on':'') + '" onclick="switchDetTab(\'plano\',this)">Plano</button>' +
       '<button class="tab' + (alunoDetTab==='notas'?' on':'') + '" onclick="switchDetTab(\'notas\',this)">Notas</button>' +
+      '<button class="tab' + (alunoDetTab==='anamnese'?' on':'') + '" onclick="switchDetTab(\'anamnese\',this)">Anamnese</button>' +
+      '<button class="tab' + (alunoDetTab==='feedbacks'?' on':'') + '" onclick="switchDetTab(\'feedbacks\',this)">Feedbacks</button>' +
     '</div>' +
     '<div id="alu-det-content" style="padding:0 20px 20px;"></div>';
 
@@ -109,6 +111,8 @@ async function loadDetTab() {
     else if (tab === 'progresso') await loadDetProgresso(gen);
     else if (tab === 'plano') await loadDetPlano(gen);
     else if (tab === 'notas') await loadDetNotas(gen);
+    else if (tab === 'anamnese') await loadDetAnamnese(gen);
+    else if (tab === 'feedbacks') await loadDetFeedbacksDet(gen);
   } catch(err) {
     if (_detGen !== gen) return; // stale — a newer tab took over
     console.error('loadDetTab [' + tab + ']:', err);
@@ -1021,6 +1025,210 @@ async function salvarNovoPlanoDet() {
   alunoDetTab = 'plano';
   renderAlunoDetalhe();
   setTimeout(loadDetTab, 100);
+}
+
+// -- ANAMNESE (visão do personal) ------------------
+async function loadDetAnamnese(gen) {
+  if (!alunoAtual) return;
+  var a = alunoAtual;
+  try {
+    var anamnese = await getAnamnese(a.id);
+    if (_detGen !== gen || !alunoAtual) return;
+    var el = document.getElementById('alu-det-content');
+    if (!el || !el.isConnected) return;
+
+    var html = '';
+
+    // Controles de liberação
+    html += '<div class="card mb">';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">';
+    html += '<div style="font-size:12px;color:var(--muted);">Edição pelo aluno</div>';
+    if (!anamnese) {
+      html += '<span style="font-size:11px;color:var(--muted);">Aguardando preenchimento</span>';
+    } else if (anamnese.liberado_editar) {
+      html += '<button class="btn btn-ghost btn-xs" onclick="bloquearAnamneseAluno()">&#x1F512; Bloquear edição</button>';
+    } else {
+      html += '<button class="btn btn-primary btn-xs" onclick="liberarAnamneseAluno()">&#x1F513; Liberar edição</button>';
+    }
+    html += '</div>';
+    if (anamnese && anamnese.atualizado_em) {
+      html += '<div style="font-size:10px;color:var(--faint);">Última atualização: ' + new Date(anamnese.atualizado_em).toLocaleDateString('pt-BR') + '</div>';
+    }
+    html += '</div>';
+
+    if (!anamnese) {
+      html += '<div class="empty"><div class="empty-ico">&#x1F4CB;</div><p>O aluno ainda não preencheu a ficha de saúde.</p></div>';
+      el.innerHTML = html;
+      return;
+    }
+
+    // Mostrar todos os campos preenchidos
+    html += _mkAnamnesePersonalView(anamnese);
+    el.innerHTML = html;
+  } catch(err) { if (_detGen !== gen) return; throw err; }
+}
+
+function _mkAnamnesePersonalView(an) {
+  var h = '';
+
+  function bloco(titulo, campos) {
+    var preenchidos = campos.filter(function(c) { return c.val !== null && c.val !== undefined && c.val !== ''; });
+    if (!preenchidos.length) return '';
+    var s = '<div class="card mb">';
+    s += '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">' + titulo + '</div>';
+    s += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
+    preenchidos.forEach(function(c) {
+      s += '<div style="background:var(--surf-high);border-radius:var(--rs);padding:8px;">';
+      s += '<div style="font-size:10px;color:var(--muted);margin-bottom:2px;">' + c.label + '</div>';
+      s += '<div style="font-size:12px;font-weight:600;color:' + (c.alert ? 'var(--red)' : 'var(--white)') + ';">' + c.val + '</div>';
+      s += '</div>';
+    });
+    s += '</div>';
+    s += '</div>';
+    return s;
+  }
+
+  function boolLabel(v) { return v === true ? 'Sim' : v === false ? 'Não' : ''; }
+
+  h += bloco('Saúde', [
+    { label: 'Lesões', val: _anLabel('historico_lesoes_b', an.historico_lesoes) || (an.historico_lesoes === 'sim' ? 'Sim' : an.historico_lesoes === 'nao' ? 'Não' : ''), alert: an.historico_lesoes === 'sim' },
+    { label: 'Detalhe lesões', val: an.lesoes_detalhe },
+    { label: 'Condições médicas', val: an.condicoes_medicas === 'sim' ? 'Sim' : an.condicoes_medicas === 'nao' ? 'Não' : '', alert: an.condicoes_medicas === 'sim' },
+    { label: 'Detalhe condições', val: an.condicoes_detalhe },
+    { label: 'Medicamentos', val: an.medicamentos === 'sim' ? 'Sim' : an.medicamentos === 'nao' ? 'Não' : '' },
+    { label: 'Quais medicamentos', val: an.medicamentos_detalhe },
+    { label: 'Pressão alta', val: boolLabel(an.pressao_alta), alert: an.pressao_alta === true },
+    { label: 'Diabetes', val: boolLabel(an.diabetes), alert: an.diabetes === true },
+    { label: 'Cardiopatia', val: boolLabel(an.cardiopatia), alert: an.cardiopatia === true },
+    { label: 'Fumante', val: boolLabel(an.fumante) }
+  ]);
+
+  h += bloco('Histórico Esportivo', [
+    { label: 'Pratica exercícios', val: an.pratica_exercicio === 'sim' ? 'Sim' : an.pratica_exercicio === 'nao' ? 'Não' : '' },
+    { label: 'Experiência musculação', val: _anLabel('experiencia_musculacao', an.experiencia_musculacao) },
+    { label: 'Modalidades', val: an.modalidades },
+    { label: 'Frequência/semana', val: an.frequencia_semanas ? an.frequencia_semanas + 'x' : '' }
+  ]);
+
+  h += bloco('Objetivos', [
+    { label: 'Objetivo principal', val: _anLabel('objetivo_principal', an.objetivo_principal) },
+    { label: 'Prazo', val: _anLabel('prazo', an.prazo) },
+    { label: 'Disponibilidade (dias/sem)', val: an.disponibilidade_dias ? an.disponibilidade_dias + ' dias' : '' },
+    { label: 'Turno', val: _anLabel('turno', an.turno) }
+  ]);
+
+  h += bloco('Hábitos de Vida', [
+    { label: 'Estresse', val: _anLabel('nivel_estresse', an.nivel_estresse) },
+    { label: 'Qualidade do sono', val: _anLabel('qualidade_sono', an.qualidade_sono) },
+    { label: 'Horas de sono', val: _anLabel('horas_sono', an.horas_sono) },
+    { label: 'Alimentação', val: _anLabel('alimentacao', an.alimentacao) },
+    { label: 'Consumo de água', val: _anLabel('consumo_agua', an.consumo_agua) },
+    { label: 'Atividade diária', val: _anLabel('atividade_diaria', an.atividade_diaria) }
+  ]);
+
+  if (an.obs) {
+    h += '<div class="card mb">';
+    h += '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Observações do aluno</div>';
+    h += '<div style="font-size:13px;color:var(--white);line-height:1.6;">' + an.obs + '</div>';
+    h += '</div>';
+  }
+
+  return h;
+}
+
+async function liberarAnamneseAluno() {
+  if (!alunoAtual) return;
+  var err = await liberarAnamnese(alunoAtual.id);
+  if (err) { toast('Erro ao liberar!'); console.error(err); return; }
+  toast('Edição liberada para o aluno ✅');
+  loadDetTab();
+}
+
+async function bloquearAnamneseAluno() {
+  if (!alunoAtual) return;
+  var err = await bloquearAnamnese(alunoAtual.id);
+  if (err) { toast('Erro ao bloquear!'); console.error(err); return; }
+  toast('Edição bloqueada 🔒');
+  loadDetTab();
+}
+
+// -- FEEDBACKS (visão do personal por aluno) -------
+async function loadDetFeedbacksDet(gen) {
+  if (!alunoAtual) return;
+  var a = alunoAtual;
+  try {
+    var feedbacks = await getFeedbacksAluno(a.id);
+    if (_detGen !== gen || !alunoAtual) return;
+    var el = document.getElementById('alu-det-content');
+    if (!el || !el.isConnected) return;
+
+    if (!feedbacks.length) {
+      el.innerHTML = '<div class="empty"><div class="empty-ico">&#x1F4AC;</div><p>Nenhum feedback enviado ainda.</p></div>';
+      return;
+    }
+
+    var html = '';
+    feedbacks.forEach(function(f) {
+      var ii = _fbIntInfo(f.intensidade);
+      var ci = _fbCorpoInfo(f.corpo);
+      var dt = f.created_at ? new Date(f.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '';
+      var treinoNome = (f.execucoes && f.execucoes.treinos) ? f.execucoes.treinos.nome : '';
+
+      html += '<div class="card mb">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">';
+      html += '<div>';
+      html += '<div style="font-size:11px;color:var(--faint);">' + dt + (treinoNome ? ' · ' + treinoNome : '') + '</div>';
+      html += '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">';
+      html += '<span style="font-size:10px;font-weight:700;color:' + ii.color + ';background:' + ii.bg + ';border:1px solid ' + ii.color + ';padding:2px 7px;border-radius:99px;">' + ii.label + '</span>';
+      if (f.corpo) html += '<span style="font-size:10px;font-weight:700;color:' + ci.color + ';background:' + ci.bg + ';border:1px solid ' + ci.color + ';padding:2px 7px;border-radius:99px;">' + ci.label + '</span>';
+      html += '</div>';
+      html += '</div>';
+      if (!f.resposta_personal) {
+        html += '<button class="btn btn-primary btn-xs" onclick="responderFeedbackDet(\'' + f.id + '\')">Responder</button>';
+      }
+      html += '</div>';
+
+      if (f.comentario) {
+        html += '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-style:italic;">"' + f.comentario + '"</div>';
+      }
+      if (f.resposta_personal) {
+        var dtResp = f.respondido_em ? new Date(f.respondido_em).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '';
+        html += '<div style="background:var(--green-glow);border:1px solid var(--green-border);border-radius:var(--rs);padding:8px;font-size:12px;">';
+        html += '<span style="color:var(--green-pale);font-weight:700;">Sua resposta' + (dtResp ? ' · ' + dtResp : '') + ':</span> ' + f.resposta_personal;
+        html += '</div>';
+      }
+      html += '</div>';
+    });
+
+    el.innerHTML = html;
+  } catch(err) { if (_detGen !== gen) return; throw err; }
+}
+
+function responderFeedbackDet(id) {
+  var existing = document.getElementById('mod-resp-fb-det'); if (existing) existing.remove();
+  var m = document.createElement('div'); m.className = 'mov'; m.id = 'mod-resp-fb-det';
+  m.innerHTML =
+    '<div class="mod"><div class="mod-handle"></div><h3>Responder feedback</h3>' +
+    '<div class="fg"><label>Resposta para o aluno</label>' +
+      '<textarea id="resp-fb-det-texto" style="min-height:100px;" placeholder="Ex: Ótimo trabalho! Vamos ajustar na próxima..."></textarea>' +
+    '</div>' +
+    '<div class="mod-actions">' +
+      '<button class="btn btn-ghost" onclick="closeModal(\'mod-resp-fb-det\')">Cancelar</button>' +
+      '<button class="btn btn-primary" onclick="salvarRespostaFeedbackDet(\'' + id + '\')">Enviar</button>' +
+    '</div></div>';
+  m.addEventListener('click', function(e) { if (e.target === m) m.classList.remove('on'); });
+  document.body.appendChild(m);
+  openModal('mod-resp-fb-det');
+}
+
+async function salvarRespostaFeedbackDet(id) {
+  var texto = (document.getElementById('resp-fb-det-texto') || {}).value;
+  if (!texto || !texto.trim()) { toast('Escreva uma resposta!'); return; }
+  var err = await responderFeedback(id, texto.trim());
+  if (err) { toast('Erro ao enviar resposta!'); console.error(err); return; }
+  var m = document.getElementById('mod-resp-fb-det'); if (m) m.remove();
+  toast('Resposta enviada! ✅');
+  loadDetTab();
 }
 
 // -- HELPERS ---------------------------------------

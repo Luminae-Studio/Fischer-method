@@ -55,6 +55,10 @@ async function loadDashData() {
     if (!el.isConnected) return;
     var feedbacks = resFeed.data || [];
 
+    var resNR = await sb.from('feedbacks').select('id', { count: 'exact', head: true }).is('resposta_personal', null);
+    if (!el.isConnected) return;
+    var naoRespondidos = resNR.count || 0;
+
     var now = new Date();
     var days = ['Domingo','Segunda-feira','Terca-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sabado'];
     var months = ['Janeiro','Fevereiro','Marco','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -110,7 +114,12 @@ async function loadDashData() {
 
     // FEEDBACKS
     html += '<div class="card mb">';
-    html += '<div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:12px;">Feedbacks recentes</div>';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">';
+    html += '<div style="font-family:var(--font-display);font-size:14px;font-weight:700;">Feedbacks recentes</div>';
+    if (naoRespondidos > 0) {
+      html += '<span style="font-size:10px;font-weight:700;color:var(--red);background:rgba(224,85,85,0.12);border:1px solid rgba(224,85,85,0.3);padding:2px 8px;border-radius:99px;">' + naoRespondidos + ' aguardando</span>';
+    }
+    html += '</div>';
     if (!feedbacks.length) {
       html += '<div style="text-align:center;padding:12px 0;color:var(--muted);font-size:12px;">Nenhum feedback nos últimos 7 dias</div>';
     } else {

@@ -254,6 +254,43 @@ async function getFeedbacksRecentes() {
   return res.data || [];
 }
 
+async function getFeedbacksNaoRespondidos() {
+  var res = await sb.from('feedbacks')
+    .select('*, profiles(name)')
+    .is('resposta_personal', null)
+    .order('created_at', { ascending: false });
+  return res.data || [];
+}
+
+async function getAnamnese(alunoId) {
+  var res = await sb.from('anamnese').select('*').eq('aluno_id', alunoId).single();
+  return res.data || null;
+}
+
+async function salvarAnamnese(alunoId, data) {
+  // Não inclui liberado_editar — o personal controla via liberarAnamnese/bloquearAnamnese
+  var payload = Object.assign({}, data, {
+    aluno_id: alunoId,
+    atualizado_em: new Date().toISOString()
+  });
+  var res = await sb.from('anamnese').upsert(payload, { onConflict: 'aluno_id' });
+  return res.error;
+}
+
+async function liberarAnamnese(alunoId) {
+  var res = await sb.from('anamnese')
+    .update({ liberado_editar: true })
+    .eq('aluno_id', alunoId);
+  return res.error;
+}
+
+async function bloquearAnamnese(alunoId) {
+  var res = await sb.from('anamnese')
+    .update({ liberado_editar: false })
+    .eq('aluno_id', alunoId);
+  return res.error;
+}
+
 async function responderFeedback(id, resposta) {
   var res = await sb.from('feedbacks').update({
     resposta_personal: resposta,
