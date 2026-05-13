@@ -112,17 +112,28 @@ async function loadDashData() {
     html += '<div class="card mb">';
     html += '<div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:12px;">Feedbacks recentes</div>';
     if (!feedbacks.length) {
-      html += '<div style="text-align:center;padding:12px 0;color:var(--muted);font-size:12px;">Nenhum feedback ainda</div>';
+      html += '<div style="text-align:center;padding:12px 0;color:var(--muted);font-size:12px;">Nenhum feedback nos últimos 7 dias</div>';
     } else {
       feedbacks.forEach(function(f) {
-        var p = f.profiles || {};
-        var intColor = f.intensidade === 'intenso' ? 'var(--red)' : f.intensidade === 'moderado' ? 'var(--gold)' : 'var(--green-pale)';
+        var p  = f.profiles || {};
+        var ii = _fbIntInfo(f.intensidade);
+        var ci = _fbCorpoInfo(f.corpo);
         html += '<div style="padding:10px 0;border-bottom:1px solid var(--outline);">';
-        html += '<div style="display:flex;justify-content:space-between;margin-bottom:3px;">';
+        html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">';
         html += '<div style="font-size:13px;font-weight:600;">' + (p.name || 'Aluno') + '</div>';
-        html += '<span style="font-size:11px;font-weight:700;color:' + intColor + ';">' + (f.intensidade || '') + '</span>';
-        html += '</div>';
-        if (f.comentario) html += '<div style="font-size:12px;color:var(--muted);">"' + f.comentario + '"</div>';
+        html += '<div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;">';
+        html += '<span style="font-size:10px;font-weight:700;color:' + ii.color + ';background:' + ii.bg + ';border:1px solid ' + ii.color + ';padding:2px 7px;border-radius:99px;white-space:nowrap;">' + ii.label + '</span>';
+        if (f.corpo) html += '<span style="font-size:10px;font-weight:700;color:' + ci.color + ';background:' + ci.bg + ';border:1px solid ' + ci.color + ';padding:2px 7px;border-radius:99px;white-space:nowrap;">' + ci.label + '</span>';
+        html += '</div></div>';
+        if (f.comentario) html += '<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">"' + f.comentario + '"</div>';
+        if (f.resposta_personal) {
+          var dtResp = f.respondido_em ? new Date(f.respondido_em).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '';
+          html += '<div style="background:var(--green-glow);border:1px solid var(--green-border);border-radius:var(--rs);padding:8px;font-size:12px;">';
+          html += '<span style="color:var(--green-pale);font-weight:700;">Respondido' + (dtResp ? ' · ' + dtResp : '') + ':</span> ' + f.resposta_personal;
+          html += '</div>';
+        } else {
+          html += '<button class="btn btn-ghost btn-xs" onclick="responderFeedbackDash(\'' + f.id + '\')">Responder</button>';
+        }
         html += '</div>';
       });
     }
@@ -212,4 +223,34 @@ async function gerarConvite() {
 function copiarConvite() {
   var code = document.getElementById('conv-code').textContent;
   navigator.clipboard.writeText(code).then(function() { toast('Copiado: ' + code); });
+}
+
+// ── RESPONDER FEEDBACK (dashboard) ───────────────
+function responderFeedbackDash(id) {
+  var existing = document.getElementById('mod-resp-fb'); if (existing) existing.remove();
+  var m = document.createElement('div'); m.className = 'mov'; m.id = 'mod-resp-fb';
+  m.innerHTML =
+    '<div class="mod"><div class="mod-handle"></div><h3>Responder feedback</h3>' +
+    '<div class="fg"><label>Resposta para o aluno</label>' +
+      '<textarea id="resp-fb-texto" style="min-height:100px;" ' +
+        'placeholder="Ex: Ótimo trabalho! Vamos aumentar a carga na próxima semana..."></textarea>' +
+    '</div>' +
+    '<div class="mod-actions">' +
+      '<button class="btn btn-ghost" onclick="closeModal(\'mod-resp-fb\')">Cancelar</button>' +
+      '<button class="btn btn-primary" onclick="salvarRespostaFeedback(\'' + id + '\')">Enviar</button>' +
+    '</div></div>';
+  m.addEventListener('click', function(e) { if (e.target === m) m.classList.remove('on'); });
+  document.body.appendChild(m);
+  openModal('mod-resp-fb');
+}
+
+async function salvarRespostaFeedback(id) {
+  var texto = (document.getElementById('resp-fb-texto') || {}).value;
+  if (!texto || !texto.trim()) { toast('Escreva uma resposta!'); return; }
+  var err = await responderFeedback(id, texto.trim());
+  if (err) { toast('Erro ao enviar resposta!'); console.error(err); return; }
+  var m = document.getElementById('mod-resp-fb'); if (m) m.remove();
+  toast('Resposta enviada! ✅');
+  _dashLoading = false;
+  loadDashData();
 }

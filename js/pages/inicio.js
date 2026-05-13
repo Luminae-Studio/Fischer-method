@@ -205,12 +205,12 @@ function _mkCalMes(exec, ano, mes) {
 // ── GRID 6 ABAS ───────────────────────────────────
 function _mkGridAbas() {
   var abas = [
-    { ico: '&#x1F4AA;', label: 'Treinos',      fn: "go('treinos')"                },
-    { ico: '&#x2B50;',  label: 'Extras',        fn: "inicioAbaBreve('Extras')"     },
-    { ico: '&#x1F4CB;', label: 'Avaliacoes',    fn: "inicioAbaBreve('Avaliacoes')" },
-    { ico: '&#x1F4C8;', label: 'Meu Progresso', fn: "go('progresso')"              },
-    { ico: '&#x1F4B3;', label: 'Faturas',       fn: "go('faturas')"                },
-    { ico: '&#x1F4C1;', label: 'Arquivos',      fn: "inicioAbaBreve('Arquivos')"   },
+    { ico: '&#x1F4AA;', label: 'Treinos',      fn: "go('treinos')"              },
+    { ico: '&#x1F4AC;', label: 'Feedback',     fn: "go('feedbacks')"            },
+    { ico: '&#x1F4CB;', label: 'Avaliacoes',   fn: "go('avaliacoes')"           },
+    { ico: '&#x1F4C8;', label: 'Meu Progresso', fn: "go('progresso')"          },
+    { ico: '&#x1F4B3;', label: 'Faturas',      fn: "go('faturas')"              },
+    { ico: '&#x1F4C1;', label: 'Arquivos',     fn: "inicioAbaBreve('Arquivos')" },
   ];
 
   var h = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">';

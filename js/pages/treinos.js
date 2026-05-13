@@ -150,6 +150,11 @@ async function abrirTreinoModal(treinoId) {
   }
 }
 
+// ── ESTADO DO FEEDBACK ────────────────────────────
+var _fbExecId = null;
+var _fbInt    = null;
+var _fbCorpo  = null;
+
 async function registrarTreinoConcluido(treinoId) {
   closeModal('mod-treino-exec');
   var today = new Date().toISOString().split('T')[0];
@@ -158,10 +163,134 @@ async function registrarTreinoConcluido(treinoId) {
     treino_id: treinoId,
     data: today,
     concluido: true
-  });
+  }).select().single();
   if (res.error) { toast('Erro ao registrar treino!'); console.error(res.error); return; }
-  toast('Treino concluido! &#x1F4AA;');
   markDirty('inicio');
   markDirty('progresso');
   markDirty('treinos');
+  markDirty('feedbacks');
+  _fbExecId = res.data ? res.data.id : null;
+  _fbInt    = null;
+  _fbCorpo  = null;
+  _abrirModalFeedback();
+}
+
+function _abrirModalFeedback() {
+  var existing = document.getElementById('mod-feedback'); if (existing) existing.remove();
+  var m = document.createElement('div'); m.className = 'mov'; m.id = 'mod-feedback';
+  m.innerHTML =
+    '<div class="mod">' +
+      '<div class="mod-handle"></div>' +
+      '<div style="text-align:center;margin-bottom:16px;">' +
+        '<div style="font-family:var(--font-display);font-size:18px;font-weight:700;letter-spacing:-.02em;">Como foi o treino? &#x1F4AA;</div>' +
+        '<div style="font-size:12px;color:var(--muted);margin-top:4px;">Deixa um recado para o Matheus</div>' +
+      '</div>' +
+
+      '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">Intensidade</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px;">' +
+        _mkFbBtn('fb-int-leve',       'leve',       '&#x1F60C;', 'Leve',       '#4aa8d8',          'fbSelInt') +
+        _mkFbBtn('fb-int-moderado',   'moderado',   '&#x1F4AA;', 'Moderado',   'var(--green-pale)', 'fbSelInt') +
+        _mkFbBtn('fb-int-dificil',    'dificil',    '&#x1F525;', 'Difícil',    '#e07c3a',          'fbSelInt') +
+        _mkFbBtn('fb-int-impossivel', 'impossivel', '&#x1F480;', 'Impossível', 'var(--red)',        'fbSelInt') +
+      '</div>' +
+
+      '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">Como está seu corpo?</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px;">' +
+        _mkFbBtn('fb-corpo-sem',    'sem_dores',    '&#x2705;',  'Sem dores',    'var(--green-pale)', 'fbSelCorpo') +
+        _mkFbBtn('fb-corpo-leves',  'dores_leves',  '&#x26A0;',  'Dores leves',  'var(--gold)',       'fbSelCorpo') +
+        _mkFbBtn('fb-corpo-fortes', 'dores_fortes', '&#x1F198;', 'Dores fortes', 'var(--red)',        'fbSelCorpo') +
+      '</div>' +
+
+      '<div class="fg">' +
+        '<label>Recado para o Matheus (opcional)</label>' +
+        '<textarea id="fb-comentario" style="min-height:70px;" placeholder="Escreva um comentário..."></textarea>' +
+      '</div>' +
+
+      '<div class="mod-actions">' +
+        '<button class="btn btn-ghost" onclick="pularFeedback()">Pular</button>' +
+        '<button class="btn btn-primary" onclick="enviarFeedback()">Enviar</button>' +
+      '</div>' +
+    '</div>';
+  m.addEventListener('click', function(e) { if (e.target === m) m.classList.remove('on'); });
+  document.body.appendChild(m);
+  openModal('mod-feedback');
+}
+
+function _mkFbBtn(id, val, ico, label, color, fn) {
+  return '<button id="' + id + '" onclick="' + fn + '(\'' + val + '\')" ' +
+    'style="padding:14px 8px;border-radius:var(--rs);border:2px solid var(--outline);background:var(--surf-high);' +
+    'cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;transition:all .15s;">' +
+    '<span style="font-size:24px;">' + ico + '</span>' +
+    '<span style="font-size:11px;font-weight:700;color:' + color + ';">' + label + '</span>' +
+    '</button>';
+}
+
+function fbSelInt(val) {
+  _fbInt = val;
+  var colorMap = { leve: '#4aa8d8', moderado: 'var(--green-pale)', dificil: '#e07c3a', impossivel: 'var(--red)' };
+  ['leve','moderado','dificil','impossivel'].forEach(function(v) {
+    var el = document.getElementById('fb-int-' + v);
+    if (!el) return;
+    el.style.border = '2px solid var(--outline)';
+    el.style.background = 'var(--surf-high)';
+  });
+  var sel = document.getElementById('fb-int-' + val);
+  if (sel) {
+    sel.style.border = '2px solid ' + (colorMap[val] || 'var(--green)');
+    sel.style.background = 'rgba(0,0,0,.2)';
+  }
+}
+
+function fbSelCorpo(val) {
+  _fbCorpo = val;
+  var colorMap = { sem_dores: 'var(--green-pale)', dores_leves: 'var(--gold)', dores_fortes: 'var(--red)' };
+  var idMap    = { sem_dores: 'fb-corpo-sem', dores_leves: 'fb-corpo-leves', dores_fortes: 'fb-corpo-fortes' };
+  ['sem_dores','dores_leves','dores_fortes'].forEach(function(v) {
+    var el = document.getElementById(idMap[v]);
+    if (!el) return;
+    el.style.border = '2px solid var(--outline)';
+    el.style.background = 'var(--surf-high)';
+  });
+  var sel = document.getElementById(idMap[val]);
+  if (sel) {
+    sel.style.border = '2px solid ' + (colorMap[val] || 'var(--green)');
+    sel.style.background = 'rgba(0,0,0,.2)';
+  }
+}
+
+async function enviarFeedback() {
+  if (!_fbInt)   { toast('Selecione a intensidade!'); return; }
+  if (!_fbCorpo) { toast('Selecione como está seu corpo!'); return; }
+  var txtEl = document.getElementById('fb-comentario');
+  var res = await salvarFeedback({
+    aluno_id:    currentUser.id,
+    execucao_id: _fbExecId,
+    intensidade: _fbInt,
+    corpo:       _fbCorpo,
+    comentario:  txtEl && txtEl.value.trim() ? txtEl.value.trim() : null
+  });
+  if (res.error) { toast('Erro ao salvar feedback!'); console.error(res.error); return; }
+  var m = document.getElementById('mod-feedback'); if (m) m.remove();
+  _mostrarToastMes();
+}
+
+function pularFeedback() {
+  var m = document.getElementById('mod-feedback'); if (m) m.remove();
+  _mostrarToastMes();
+}
+
+async function _mostrarToastMes() {
+  try {
+    var now      = new Date();
+    var mesStart = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-01';
+    var res = await sb.from('execucoes')
+      .select('data')
+      .eq('aluno_id', currentUser.id)
+      .eq('concluido', true)
+      .gte('data', mesStart);
+    var dias = new Set((res.data || []).map(function(e) { return e.data; })).size;
+    toast('Treino concluído! 💪 Você treinou ' + dias + ' ' + (dias === 1 ? 'dia' : 'dias') + ' esse mês.', 3000);
+  } catch(e) {
+    toast('Treino concluído! 💪', 3000);
+  }
 }

@@ -37,7 +37,9 @@ function renderPage(id) {
     dash: renderDash,
     alunos: renderAlunos,
     exercicios: renderExercicios,
-    faturas: renderFaturas
+    faturas: renderFaturas,
+    feedbacks: renderFeedbacks,
+    avaliacoes: renderAvaliacoesAluno
   };
   if (pages[id]) pages[id]();
 }

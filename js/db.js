@@ -229,6 +229,39 @@ async function atualizarPlano(id, data) {
   return res.error;
 }
 
+// ── FEEDBACKS ─────────────────────────────────────
+async function salvarFeedback(data) {
+  var res = await sb.from('feedbacks').insert(data).select().single();
+  return res;
+}
+
+async function getFeedbacksAluno(alunoId) {
+  var res = await sb.from('feedbacks')
+    .select('*, execucoes(data, treinos(nome))')
+    .eq('aluno_id', alunoId)
+    .order('created_at', { ascending: false });
+  return res.data || [];
+}
+
+async function getFeedbacksRecentes() {
+  var d7 = new Date();
+  d7.setDate(d7.getDate() - 7);
+  var res = await sb.from('feedbacks')
+    .select('*, profiles(name)')
+    .gte('created_at', d7.toISOString())
+    .order('created_at', { ascending: false })
+    .limit(10);
+  return res.data || [];
+}
+
+async function responderFeedback(id, resposta) {
+  var res = await sb.from('feedbacks').update({
+    resposta_personal: resposta,
+    respondido_em: new Date().toISOString()
+  }).eq('id', id);
+  return res.error;
+}
+
 async function getPlanoAtual() {
   var uid = currentUser.id;
   var res = await sb.from('planos')
