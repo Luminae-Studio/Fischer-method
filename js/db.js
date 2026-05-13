@@ -181,6 +181,25 @@ async function getConvites() {
   return data;
 }
 
+async function editarConvite(id, novoNome) {
+  var res = await sb.from('invite_codes').update({ aluno_nome: novoNome }).eq('id', id);
+  if (!res.error) { invalidateCache('convites'); markDirty('alunos'); }
+  return res.error;
+}
+
+async function apagarConvite(id, usedBy) {
+  var res = await sb.from('invite_codes').delete().eq('id', id);
+  if (res.error) return res.error;
+  if (usedBy) {
+    await sb.from('profiles').delete().eq('id', usedBy);
+    invalidateCache('alunos');
+    markDirty('dash');
+  }
+  invalidateCache('convites');
+  markDirty('alunos');
+  return null;
+}
+
 // ── PLANOS ────────────────────────────────────────
 async function getPlanoAluno(alunoId) {
   var res = await sb.from('planos')

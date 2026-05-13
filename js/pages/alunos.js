@@ -110,6 +110,8 @@ async function loadListaConvites() {
       var usado = c.used;
       var data = c.created_at ? new Date(c.created_at).toLocaleDateString('pt-BR') : '';
       var nomeAluno = c.aluno_nome || 'Aluno';
+      var nomeEsc = nomeAluno.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+      var usedByStr = c.used_by ? "'" + c.used_by + "'" : 'null';
 
       html +=
         '<div class="card card-sm mb" style="display:flex;align-items:center;gap:12px;">' +
@@ -128,6 +130,10 @@ async function loadListaConvites() {
             (!usado
               ? '<button class="btn btn-ghost btn-xs" onclick="copiarCodigo(\'' + c.code + '\')">Copiar</button>'
               : '') +
+            '<div style="display:flex;gap:4px;">' +
+              '<button class="btn btn-ghost btn-xs" onclick="editarConviteModal(\'' + c.id + '\',\'' + nomeEsc + '\')">Editar</button>' +
+              '<button class="btn btn-danger btn-xs" onclick="apagarConviteConfirm(\'' + c.id + '\',' + usado + ',' + usedByStr + ')">Apagar</button>' +
+            '</div>' +
           '</div>' +
         '</div>';
     });
@@ -142,5 +148,51 @@ function copiarCodigo(code) {
   navigator.clipboard.writeText(code).then(function() {
     toast('Copiado: ' + code);
   });
+}
+
+// ── EDITAR CONVITE ────────────────────────────────
+function editarConviteModal(id, nomeAtual) {
+  var existing = document.getElementById('mod-edit-convite'); if (existing) existing.remove();
+  var m = document.createElement('div'); m.className = 'mov'; m.id = 'mod-edit-convite';
+  m.innerHTML =
+    '<div class="mod"><div class="mod-handle"></div><h3>Editar convite</h3>' +
+    '<div class="fg"><label>Nome do aluno</label>' +
+      '<input type="text" id="ec-nome" value="' + nomeAtual + '" placeholder="Ex: Ana Silva">' +
+    '</div>' +
+    '<div class="mod-actions">' +
+      '<button class="btn btn-ghost" onclick="closeModal(\'mod-edit-convite\')">Cancelar</button>' +
+      '<button class="btn btn-primary" onclick="salvarEditConvite(\'' + id + '\')">Salvar</button>' +
+    '</div></div>';
+  m.addEventListener('click', function(e) { if (e.target === m) m.classList.remove('on'); });
+  document.body.appendChild(m);
+  openModal('mod-edit-convite');
+}
+
+async function salvarEditConvite(id) {
+  var nome = document.getElementById('ec-nome').value.trim();
+  if (!nome) { toast('Digite o nome do aluno!'); return; }
+  var err = await editarConvite(id, nome);
+  if (err) { toast('Erro ao salvar!'); console.error(err); return; }
+  closeModal('mod-edit-convite');
+  toast('Convite atualizado!');
+  _alunosLoading = false;
+  loadAlunosTab();
+}
+
+// ── APAGAR CONVITE ────────────────────────────────
+function apagarConviteConfirm(id, usado, usedBy) {
+  var msg = usado
+    ? 'Tem certeza? O aluno perderá acesso ao app.'
+    : 'Apagar este convite?';
+  if (!confirm(msg)) return;
+  _executarApagarConvite(id, usado ? usedBy : null);
+}
+
+async function _executarApagarConvite(id, usedBy) {
+  var err = await apagarConvite(id, usedBy);
+  if (err) { toast('Erro ao apagar!'); console.error(err); return; }
+  toast('Convite apagado' + (usedBy ? ' e acesso revogado.' : '!'));
+  _alunosLoading = false;
+  loadAlunosTab();
 }
 
