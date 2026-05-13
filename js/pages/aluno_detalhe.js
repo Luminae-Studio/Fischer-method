@@ -113,7 +113,7 @@ async function loadDetTab() {
     if (_detGen !== gen) return; // stale — a newer tab took over
     console.error('loadDetTab [' + tab + ']:', err);
     var el2 = document.getElementById('alu-det-content');
-    if (el2) el2.innerHTML =
+    if (el2 && el2.isConnected) el2.innerHTML =
       '<div class="empty"><div class="empty-ico">&#x26A0;</div>' +
       '<p>Erro ao carregar.<br>' +
       '<button class="btn btn-ghost btn-sm" onclick="loadDetTab()">Tentar novamente</button></p></div>';
@@ -124,7 +124,7 @@ async function loadDetTab() {
 async function loadDetVisao(gen) {
   if (!alunoAtual) return;
   var a = alunoAtual;
-
+  try {
   // Busca ultima avaliacao
   var resAv = await sb.from('avaliacoes')
     .select('peso,altura,imc,gordura_pct,pressao,data')
@@ -144,7 +144,7 @@ async function loadDetVisao(gen) {
   var treinos = resTr.data || [];
 
   var el = document.getElementById('alu-det-content');
-  if (!el) return;
+  if (!el || !el.isConnected) return;
 
   var html = '';
 
@@ -228,42 +228,46 @@ async function loadDetVisao(gen) {
   html += '</div>';
 
   el.innerHTML = html;
+  } catch(err) { if (_detGen !== gen) return; throw err; }
 }
 
 // -- TREINOS ---------------------------------------
 async function loadDetTreinos(gen) {
   if (!alunoAtual) return;
   var a = alunoAtual;
-  var res = await sb.from('execucoes').select('*, treinos(nome)').eq('aluno_id', a.id).order('data',{ascending:false}).limit(20);
-  if (_detGen !== gen || !alunoAtual) return;
-  var el = document.getElementById('alu-det-content');
-  if (!el) return;
-  var exec = res.data || [];
-  if (!exec.length) { el.innerHTML = '<div class="empty"><div class="empty-ico">&#x1F4AA;</div><p>Nenhum treino registrado ainda.</p></div>'; return; }
-  var html = '<div class="card">';
-  exec.forEach(function(e) {
-    var dt = new Date(e.data+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'numeric',month:'short'});
-    html += '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--outline);">';
-    html += '<div style="width:40px;height:40px;border-radius:var(--rx);background:' + (e.concluido?'var(--green-glow)':'var(--surf-high)') + ';border:1px solid ' + (e.concluido?'var(--green-border)':'var(--outline)') + ';display:flex;align-items:center;justify-content:center;font-size:16px;">' + (e.concluido?'&#x2713;':'&#x23F3;') + '</div>';
-    html += '<div style="flex:1;"><div style="font-size:13px;font-weight:600;">' + (e.treinos?e.treinos.nome:'Treino') + '</div>';
-    html += '<div style="font-size:11px;color:var(--muted);">' + dt + (e.duracao_min?' &middot; '+e.duracao_min+'min':'') + '</div></div>';
-    html += '<span class="badge ' + (e.concluido?'badge-green':'badge-muted') + '">' + (e.concluido?'OK':'Parcial') + '</span>';
-    html += '</div>';
-  });
-  el.innerHTML = html + '</div>';
+  try {
+    var res = await sb.from('execucoes').select('*, treinos(nome)').eq('aluno_id', a.id).order('data',{ascending:false}).limit(20);
+    if (_detGen !== gen || !alunoAtual) return;
+    var el = document.getElementById('alu-det-content');
+    if (!el || !el.isConnected) return;
+    var exec = res.data || [];
+    if (!exec.length) { el.innerHTML = '<div class="empty"><div class="empty-ico">&#x1F4AA;</div><p>Nenhum treino registrado ainda.</p></div>'; return; }
+    var html = '<div class="card">';
+    exec.forEach(function(e) {
+      var dt = new Date(e.data+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'numeric',month:'short'});
+      html += '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--outline);">';
+      html += '<div style="width:40px;height:40px;border-radius:var(--rx);background:' + (e.concluido?'var(--green-glow)':'var(--surf-high)') + ';border:1px solid ' + (e.concluido?'var(--green-border)':'var(--outline)') + ';display:flex;align-items:center;justify-content:center;font-size:16px;">' + (e.concluido?'&#x2713;':'&#x23F3;') + '</div>';
+      html += '<div style="flex:1;"><div style="font-size:13px;font-weight:600;">' + (e.treinos?e.treinos.nome:'Treino') + '</div>';
+      html += '<div style="font-size:11px;color:var(--muted);">' + dt + (e.duracao_min?' &middot; '+e.duracao_min+'min':'') + '</div></div>';
+      html += '<span class="badge ' + (e.concluido?'badge-green':'badge-muted') + '">' + (e.concluido?'OK':'Parcial') + '</span>';
+      html += '</div>';
+    });
+    el.innerHTML = html + '</div>';
+  } catch(err) { if (_detGen !== gen) return; throw err; }
 }
 
 // -- MEDIDAS (Historico de avaliacoes) --------------
 async function loadDetMedidas(gen) {
   if (!alunoAtual) return;
   var a = alunoAtual;
+  try {
   var res = await sb.from('avaliacoes')
     .select('*')
     .eq('aluno_id', a.id)
     .order('data', {ascending: false});
   if (_detGen !== gen || !alunoAtual) return;
   var el = document.getElementById('alu-det-content');
-  if (!el) return;
+  if (!el || !el.isConnected) return;
   var avaliacoes = res.data || [];
 
   var html = '';
@@ -387,6 +391,7 @@ async function loadDetMedidas(gen) {
   });
 
   el.innerHTML = html;
+  } catch(err) { if (_detGen !== gen) return; throw err; }
 }
 
 // Abre/fecha detalhes de uma avaliacao no historico
@@ -404,7 +409,7 @@ function toggleAvDetalhes(id) {
 async function loadDetProgresso(gen) {
   if (!alunoAtual) return;
   var a = alunoAtual;
-
+  try {
   // Busca avaliacoes em ordem cronologica (fonte unica de verdade)
   var resAv = await sb.from('avaliacoes')
     .select('data, peso, imc, gordura_pct, pressao')
@@ -412,7 +417,7 @@ async function loadDetProgresso(gen) {
     .order('data', {ascending: true});
   if (_detGen !== gen || !alunoAtual) return;
   var el = document.getElementById('alu-det-content');
-  if (!el) return;
+  if (!el || !el.isConnected) return;
   var avs = resAv.data || [];
 
   if (!avs.length) {
@@ -545,16 +550,18 @@ async function loadDetProgresso(gen) {
   }
 
   el.innerHTML = html;
+  } catch(err) { if (_detGen !== gen) return; throw err; }
 }
 
 // -- NOTAS -----------------------------------------
 async function loadDetNotas(gen) {
   if (!alunoAtual) return;
   var a = alunoAtual;
+  try {
   var res = await sb.from('notas_aluno').select('*').eq('aluno_id', a.id).order('created_at',{ascending:false});
-  if (gen !== undefined && (_detGen !== gen || !alunoAtual)) return;
+  if (_detGen !== gen || !alunoAtual) return;
   var el = document.getElementById('alu-det-content');
-  if (!el) return;
+  if (!el || !el.isConnected) return;
   var notas = res.data || [];
 
   var tipoInfo = {
@@ -613,6 +620,7 @@ async function loadDetNotas(gen) {
   }
 
   el.innerHTML = html;
+  } catch(err) { if (_detGen !== gen) return; throw err; }
 }
 
 async function salvarNota() {
@@ -865,14 +873,14 @@ async function salvarEditAluno() {
 async function loadDetPlano(gen) {
   if (!alunoAtual) return;
   var a = alunoAtual;
-
+  try {
   var plano = await getPlanoAluno(a.id);
   if (_detGen !== gen || !alunoAtual) return;
   var historico = await getHistoricoPlanos(a.id);
   if (_detGen !== gen || !alunoAtual) return;
 
   var el = document.getElementById('alu-det-content');
-  if (!el) return;
+  if (!el || !el.isConnected) return;
 
   var html = '<button class="btn btn-primary btn-full mb" onclick="openNovoPlanoDet()">+ Novo plano</button>';
 
@@ -906,6 +914,7 @@ async function loadDetPlano(gen) {
   }
 
   el.innerHTML = html;
+  } catch(err) { if (_detGen !== gen) return; throw err; }
 }
 
 function openNovoPlanoDet() {
